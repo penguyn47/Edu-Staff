@@ -7,7 +7,7 @@ async function main() {
     {
       studentId: 'SV001',
       name: 'Nguyễn Văn An',
-      dob: '2000-01-15',
+      dob: new Date('2000-01-15'),
       sex: StudentSex.MALE,
       faculty: 'Khoa Luật',
       cohort: 2020,
@@ -20,7 +20,7 @@ async function main() {
     {
       studentId: 'SV002',
       name: 'Trần Thị Bình',
-      dob: '2001-03-22',
+      dob: new Date('2001-03-22'),
       sex: StudentSex.FEMALE,
       faculty: 'Khoa Tiếng Anh thương mại',
       cohort: 2021,
@@ -33,7 +33,7 @@ async function main() {
     {
       studentId: 'SV003',
       name: 'Lê Minh Châu',
-      dob: '1999-07-10',
+      dob: new Date('1999-07-10'),
       sex: StudentSex.MALE,
       faculty: 'Khoa Tiếng Nhật',
       cohort: 2019,
@@ -46,7 +46,7 @@ async function main() {
     {
       studentId: 'SV004',
       name: 'Phạm Thị Dung',
-      dob: '2002-05-18',
+      dob: new Date('2002-05-18'),
       sex: StudentSex.FEMALE,
       faculty: 'Khoa Tiếng Pháp',
       cohort: 2022,
@@ -59,7 +59,7 @@ async function main() {
     {
       studentId: 'SV005',
       name: 'Hoàng Văn Nam',
-      dob: '2000-11-30',
+      dob: new Date('2000-11-30'),
       sex: StudentSex.MALE,
       faculty: 'Khoa Luật',
       cohort: 2020,
@@ -72,7 +72,7 @@ async function main() {
     {
       studentId: 'SV006',
       name: 'Vũ Thị Hoa',
-      dob: '2001-09-05',
+      dob: new Date('2001-09-05'),
       sex: StudentSex.FEMALE,
       faculty: 'Khoa Tiếng Anh thương mại',
       cohort: 2021,
@@ -85,7 +85,7 @@ async function main() {
     {
       studentId: 'SV007',
       name: 'Đỗ Minh Quân',
-      dob: '1998-12-12',
+      dob: new Date('1998-12-12'),
       sex: StudentSex.MALE,
       faculty: 'Khoa Tiếng Nhật',
       cohort: 2018,
@@ -98,7 +98,7 @@ async function main() {
     {
       studentId: 'SV008',
       name: 'Nguyễn Thị Lan',
-      dob: '2002-02-25',
+      dob: new Date('2002-02-25'),
       sex: StudentSex.FEMALE,
       faculty: 'Khoa Tiếng Pháp',
       cohort: 2022,
@@ -111,7 +111,7 @@ async function main() {
     {
       studentId: 'SV009',
       name: 'Trần Văn Khải',
-      dob: '2000-04-08',
+      dob: new Date('2000-04-08'),
       sex: StudentSex.MALE,
       faculty: 'Khoa Luật',
       cohort: 2020,
@@ -124,7 +124,7 @@ async function main() {
     {
       studentId: 'SV010',
       name: 'Lê Thị Mai',
-      dob: '2001-06-17',
+      dob: new Date('2001-06-17'),
       sex: StudentSex.FEMALE,
       faculty: 'Khoa Tiếng Anh thương mại',
       cohort: 2021,
@@ -137,7 +137,7 @@ async function main() {
     {
       studentId: 'SV011',
       name: 'Phạm Văn Long',
-      dob: '1999-08-20',
+      dob: new Date('1999-08-20'),
       sex: StudentSex.MALE,
       faculty: 'Khoa Tiếng Nhật',
       cohort: 2019,
@@ -150,7 +150,7 @@ async function main() {
     {
       studentId: 'SV012',
       name: 'Hoàng Thị Ngọc',
-      dob: '2002-10-03',
+      dob: new Date('2002-10-03'),
       sex: StudentSex.FEMALE,
       faculty: 'Khoa Tiếng Pháp',
       cohort: 2022,
@@ -163,7 +163,7 @@ async function main() {
     {
       studentId: 'SV013',
       name: 'Vũ Minh Tuấn',
-      dob: '2000-03-14',
+      dob: new Date('2000-03-14'),
       sex: StudentSex.MALE,
       faculty: 'Khoa Luật',
       cohort: 2020,
@@ -176,7 +176,7 @@ async function main() {
     {
       studentId: 'SV014',
       name: 'Nguyễn Thị Thủy',
-      dob: '2001-01-27',
+      dob:  new Date('2001-01-27'),
       sex: StudentSex.FEMALE,
       faculty: 'Khoa Tiếng Anh thương mại',
       cohort: 2021,
@@ -189,7 +189,7 @@ async function main() {
     {
       studentId: 'SV015',
       name: 'Trần Văn Phúc',
-      dob: '1999-05-09',
+      dob: new Date('1999-05-09'),
       sex: StudentSex.MALE,
       faculty: 'Khoa Tiếng Nhật',
       cohort: 2019,
@@ -202,7 +202,7 @@ async function main() {
   ];
   for (const student of students) {
     await prisma.student.create({
-      data: student,
+      data: student
     });
   }
 }

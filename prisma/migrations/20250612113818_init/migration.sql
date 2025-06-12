@@ -6,10 +6,10 @@ CREATE TYPE "StudentStatus" AS ENUM ('ACTIVE', 'GRADUATED', 'SUSPENDED', 'WITHDR
 
 -- CreateTable
 CREATE TABLE "Student" (
-    "id" TEXT NOT NULL,
+    "id" SERIAL NOT NULL,
     "studentId" TEXT NOT NULL,
     "name" TEXT NOT NULL,
-    "dob" TEXT NOT NULL,
+    "dob" TIMESTAMP(3) NOT NULL,
     "sex" "StudentSex" NOT NULL,
     "faculty" TEXT NOT NULL,
     "cohort" INTEGER NOT NULL,

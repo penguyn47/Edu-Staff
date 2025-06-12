@@ -8,10 +8,10 @@ datasource db {
 }
 
 model Student {
-  id        String        @id @default(ulid())
+  id        Int           @id @default(autoincrement())
   studentId String        @unique
   name      String
-  dob       String
+  dob       DateTime
   sex       StudentSex
   faculty   String
   cohort    Int
