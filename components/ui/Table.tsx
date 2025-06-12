@@ -8,8 +8,8 @@ export const Table = ({
 	data: any[]
 }) => {
 	return (
-		<table className="mt-4 w-full">
-			<thead>
+		<table className="mt-4 w-full border">
+			<thead className="bg-gray-200">
 				<tr className="text-left text-sm text-gray-700">
 					{columns.map((col) => (
 						<th key={col.accessor} className={col.className}>
