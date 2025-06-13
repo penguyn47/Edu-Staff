@@ -1,25 +1,41 @@
 'use client'
 
 import { Dispatch, ReactNode, SetStateAction, useActionState, useEffect, useState } from 'react'
-import { deleteStudent, deleteFaculty, deleteProgram } from '@/lib/actions'
+import { deleteStudent, deleteFaculty, deleteProgram, deleteStudentStatus } from '@/lib/actions'
 import { toast } from 'react-toastify'
 import { useRouter } from 'next/navigation'
 import StudentForm from './forms/StudentForm'
 import FacultyForm from './forms/FacultyForm'
 import ProgramForm from './forms/ProgramForm'
+import StudentStatusForm from './forms/StudentStatusForm'
 
 const deleteActionMap = {
 	student: deleteStudent,
 	faculty: deleteFaculty,
 	program: deleteProgram,
+	studentstatus: deleteStudentStatus,
 }
 
 const forms: {
-	[key: string]: (setOpen: Dispatch<SetStateAction<boolean>>, type: 'create' | 'update', data?: any) => ReactNode
+	[key: string]: (
+		setOpen: Dispatch<SetStateAction<boolean>>,
+		type: 'create' | 'update',
+		data?: any,
+		relatedData?: any,
+	) => ReactNode
 } = {
-	student: (setOpen, type, data) => <StudentForm setOpen={setOpen} type={type} data={data} />,
-	faculty: (setOpen, type, data) => <FacultyForm setOpen={setOpen} type={type} data={data} />,
-	program: (setOpen, type, data) => <ProgramForm setOpen={setOpen} type={type} data={data} />,
+	student: (setOpen, type, data, relatedData) => (
+		<StudentForm setOpen={setOpen} type={type} data={data} relatedData={relatedData} />
+	),
+	faculty: (setOpen, type, data, relatedData) => (
+		<FacultyForm setOpen={setOpen} type={type} data={data} relatedData={relatedData} />
+	),
+	program: (setOpen, type, data, relatedData) => (
+		<ProgramForm setOpen={setOpen} type={type} data={data} relatedData={relatedData} />
+	),
+	studentstatus: (setOpen, type, data, relatedData) => (
+		<StudentStatusForm setOpen={setOpen} type={type} data={data} relatedData={relatedData} />
+	),
 }
 
 export default function FormModal({
@@ -28,12 +44,14 @@ export default function FormModal({
 	data,
 	id,
 	children,
+	relatedData,
 }: {
 	type: 'create' | 'update' | 'delete'
-	tableName: 'student' | 'faculty' | 'program'
+	tableName: 'student' | 'faculty' | 'program' | 'studentstatus'
 	data?: any
 	id?: number
 	children: ReactNode
+	relatedData?: any
 }) {
 	const [isOpen, setOpen] = useState(false)
 
@@ -65,7 +83,7 @@ export default function FormModal({
 				</form>
 			</div>
 		) : type === 'create' || type === 'update' ? (
-			forms[tableName](setOpen, type, data)
+			forms[tableName](setOpen, type, data, relatedData)
 		) : (
 			'Form not found!'
 		)

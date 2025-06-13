@@ -1,3 +1,4 @@
+import FormModal from '@/components/FormModal'
 import { Pagination } from '@/components/ui/Pagination'
 import { Table } from '@/components/ui/Table'
 import TableSearch from '@/components/ui/TableSearch'
@@ -15,12 +16,45 @@ const columns = [
 		header: 'Tên chương trình',
 		accessor: 'name',
 	},
+	{
+		header: '',
+		accessor: 'actions',
+	},
 ]
 
-const renderRow = (item: Program) => (
+const renderRow = (item: Program & { _count: { students: number } }) => (
 	<tr key={item.id}>
 		<td className="px-2 py-1">{item.id}</td>
 		<td className="px-2 py-1">{item.name}</td>
+		<td className="px-2 py-1">
+			<div className="flex justify-end gap-2">
+				{item._count.students == 0 ? (
+					<FormModal
+						tableName="program"
+						type="delete"
+						id={item.id}
+						children={
+							<div className="rounded-sm bg-gray-200 px-1 py-1 text-center text-sm hover:cursor-pointer hover:bg-gray-300">
+								Xóa
+							</div>
+						}
+					/>
+				) : (
+					<></>
+				)}
+
+				<FormModal
+					tableName="program"
+					type="update"
+					data={item}
+					children={
+						<div className="rounded-sm bg-gray-200 px-1 py-1 text-center text-sm hover:cursor-pointer hover:bg-gray-300">
+							Sửa
+						</div>
+					}
+				/>
+			</div>
+		</td>
 	</tr>
 )
 
@@ -35,6 +69,13 @@ export default async function ProgramListPage({
 
 	const [data, count] = await prisma.$transaction([
 		prisma.program.findMany({
+			include: {
+				_count: {
+					select: {
+						students: true,
+					},
+				},
+			},
 			take: ITEM_PER_PAGE,
 			skip: ITEM_PER_PAGE * (p - 1),
 		}),
@@ -45,19 +86,19 @@ export default async function ProgramListPage({
 		<div>
 			<div className="mx-16 flex flex-col justify-between">
 				{/* Tools bar Section - Start */}
-				<div className="flex items-center justify-around">
+				<div className="flex flex-col items-center justify-around">
 					<TableSearch />
-					{/* <div>
+					<div>
 						<FormModal
-							tableName="student"
+							tableName="program"
 							type="create"
 							children={
-								<div className="mt-2 rounded-sm bg-gray-200 px-2 py-1 text-xl hover:cursor-pointer hover:bg-gray-300">
-									Thêm sinh viên
+								<div className="mt-2 rounded-sm border px-2 py-1 text-sm select-none hover:cursor-pointer hover:bg-gray-200">
+									Thêm
 								</div>
 							}
 						/>
-					</div> */}
+					</div>
 				</div>
 				{/* Tools bar Section - End */}
 
