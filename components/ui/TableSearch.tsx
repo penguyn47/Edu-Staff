@@ -10,6 +10,7 @@ export default function TableSearch() {
 	const handleSearch = (value: string) => {
 		const params = new URLSearchParams(window.location.search)
 		params.set('search', value)
+		params.set('page', '1')
 		router.push(`${window.location.pathname}?${params}`)
 	}
 
@@ -31,14 +32,9 @@ export default function TableSearch() {
 	}, [searchValue])
 
 	return (
-		<form className="flex w-1/3" onSubmit={handleSubmit}>
+		<form className="flex w-2/3" onSubmit={handleSubmit}>
 			<div className="flex w-full items-center justify-center gap-2">
-				<input
-					type="text"
-					className="min-w-[400px] rounded-sm border px-2 py-1 text-sm"
-					placeholder="Tìm theo tên hoặc MSSV"
-					onChange={handleOnChange}
-				/>
+				<input type="text" className="min-w-[800px] rounded-sm border px-2 py-1 text-sm" onChange={handleOnChange} />
 				<button className="text-gray-800 hover:cursor-pointer hover:text-gray-400">
 					<FaSearch className="text-2xl" />
 				</button>
