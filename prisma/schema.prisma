@@ -7,24 +7,42 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum StudentSex {
+  MALE
+  FEMALE
+}
+
+enum IdentificationType {
+  CMND
+  CCCD
+  PASSPORT
+}
+
 model Student {
-  id        Int        @id @default(autoincrement())
-  studentId String     @unique
-  name      String
-  dob       DateTime
-  sex       StudentSex
-  cohort    Int
-  address   String?
-  phone     String?    @unique
-  email     String?    @unique
+  id          Int        @id @default(autoincrement())
+  studentId   String     @unique
+  name        String
+  dob         DateTime
+  sex         StudentSex
+  cohort      Int
+  phone       String?    @unique
+  email       String?    @unique
+  zipCode     Int
+  nationality String
 
   statusId  Int
   facultyId Int
   programId Int
 
-  status  StudentStatus @relation(fields: [statusId], references: [id])
-  faculty Faculty       @relation(fields: [facultyId], references: [id])
-  program Program       @relation(fields: [programId], references: [id])
+  permaAddressId Int?
+  tempAddressId  Int?
+
+  status          StudentStatus    @relation(fields: [statusId], references: [id])
+  faculty         Faculty          @relation(fields: [facultyId], references: [id])
+  program         Program          @relation(fields: [programId], references: [id])
+  permaAddress    Address?         @relation("PermanentAddress", fields: [permaAddressId], references: [id])
+  tempAddress     Address?         @relation("TemporaryAddress", fields: [tempAddressId], references: [id])
+  identifications Identification[]
 }
 
 model Faculty {
@@ -45,7 +63,28 @@ model StudentStatus {
   students Student[]
 }
 
-enum StudentSex {
-  MALE
-  FEMALE
+model Address {
+  id           Int       @id @default(autoincrement())
+  houseNumber  String
+  street       String
+  ward         String
+  district     String
+  city         String
+  country      String
+  studentPerma Student[] @relation("PermanentAddress")
+  studentTemp  Student[] @relation("TemporaryAddress")
+}
+
+model Identification {
+  id             Int                @id @default(autoincrement())
+  type           IdentificationType
+  number         String             @unique
+  issueDate      DateTime
+  expiryDate     DateTime?
+  issuePlace     String
+  hasChip        Boolean?
+  issuingCountry String?
+  notes          String?
+  studentId      Int?
+  student        Student?           @relation(fields: [studentId], references: [id])
 }
