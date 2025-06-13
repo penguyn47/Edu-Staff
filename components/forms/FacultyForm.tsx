@@ -17,12 +17,7 @@ export default function FacultyForm({
 		success: false,
 		error: false,
 		errors: null,
-		data: data
-			? {
-					...data,
-					dob: data.dob instanceof Date ? data.dob.toISOString().split('T')[0] : data.dob,
-				}
-			: null,
+		data: data,
 	})
 
 	const router = useRouter()
