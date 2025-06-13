@@ -8,10 +8,12 @@ export default function ProgramForm({
 	type,
 	data,
 	setOpen,
+	relatedData,
 }: {
 	type: 'create' | 'update'
 	data?: any
 	setOpen: Dispatch<SetStateAction<boolean>>
+	relatedData?: any
 }) {
 	const [state, formAction] = useActionState(type === 'create' ? createProgram : updateProgram, {
 		success: false,

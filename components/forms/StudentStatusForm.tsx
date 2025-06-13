@@ -1,10 +1,10 @@
-import { createFaculty, updateFaculty } from '@/lib/actions'
+import { createProgram, createStudentStatus, updateProgram, updateStudentStatus } from '@/lib/actions'
 import { useRouter } from 'next/navigation'
 import { Dispatch, SetStateAction, useActionState, useEffect } from 'react'
 import { toast } from 'react-toastify'
 import InputField from '../InputField'
 
-export default function FacultyForm({
+export default function StudentStatusForm({
 	type,
 	data,
 	setOpen,
@@ -15,7 +15,7 @@ export default function FacultyForm({
 	setOpen: Dispatch<SetStateAction<boolean>>
 	relatedData?: any
 }) {
-	const [state, formAction] = useActionState(type === 'create' ? createFaculty : updateFaculty, {
+	const [state, formAction] = useActionState(type === 'create' ? createStudentStatus : updateStudentStatus, {
 		success: false,
 		error: false,
 		errors: null,
