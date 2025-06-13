@@ -1,15 +1,17 @@
 'use client'
 
 import { Dispatch, ReactNode, SetStateAction, useActionState, useEffect, useState } from 'react'
-import { deleteStudent, deleteFaculty } from '@/lib/actions'
+import { deleteStudent, deleteFaculty, deleteProgram } from '@/lib/actions'
 import { toast } from 'react-toastify'
 import { useRouter } from 'next/navigation'
 import StudentForm from './forms/StudentForm'
 import FacultyForm from './forms/FacultyForm'
+import ProgramForm from './forms/ProgramForm'
 
 const deleteActionMap = {
 	student: deleteStudent,
 	faculty: deleteFaculty,
+	program: deleteProgram,
 }
 
 const forms: {
@@ -17,6 +19,7 @@ const forms: {
 } = {
 	student: (setOpen, type, data) => <StudentForm setOpen={setOpen} type={type} data={data} />,
 	faculty: (setOpen, type, data) => <FacultyForm setOpen={setOpen} type={type} data={data} />,
+	program: (setOpen, type, data) => <ProgramForm setOpen={setOpen} type={type} data={data} />,
 }
 
 export default function FormModal({
@@ -27,7 +30,7 @@ export default function FormModal({
 	children,
 }: {
 	type: 'create' | 'update' | 'delete'
-	tableName: 'student' | 'faculty'
+	tableName: 'student' | 'faculty' | 'program'
 	data?: any
 	id?: number
 	children: ReactNode

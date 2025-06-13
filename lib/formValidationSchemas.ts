@@ -19,6 +19,11 @@ export const facultySchema = z.object({
     name: z.string().min(1, {message: "Tên khoa không được bỏ trống"})
 })
 
-export type StudentSchema = z.infer<typeof studentSchema>;
+export const programSchema = z.object({
+    id: z.coerce.number(),
+    name: z.string().min(1, {message: "Tên chương trình không được bỏ trống"})
+})
 
+export type StudentSchema = z.infer<typeof studentSchema>;
 export type FacultySchema = z.infer<typeof facultySchema>;
+export type ProgramSchema = z.infer<typeof programSchema>;
