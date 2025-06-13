@@ -14,4 +14,11 @@ export const studentSchema = z.object({
     status: z.enum(["ACTIVE", "GRADUATED", "SUSPENDED", "WITHDRAWN"], {message: "Trạng thái không được bỏ trống"}),
 })
 
+export const facultySchema = z.object({
+    id: z.coerce.number(),
+    name: z.string().min(1, {message: "Tên khoa không được bỏ trống"})
+})
+
 export type StudentSchema = z.infer<typeof studentSchema>;
+
+export type FacultySchema = z.infer<typeof facultySchema>;
