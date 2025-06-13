@@ -3,9 +3,10 @@ import { Pagination } from '@/components/ui/Pagination'
 
 import { ITEM_PER_PAGE } from '@/lib/settings'
 
-import { Student, StudentSex, StudentStatus } from '@prisma/client'
+import { Prisma, Student, StudentSex, StudentStatus } from '@prisma/client'
 import prisma from '@/lib/prisma'
 import FormModal from '@/components/FormModal'
+import TableSearch from '@/components/ui/TableSearch'
 
 const columns = [
 	{
@@ -107,14 +108,34 @@ export default async function StudentListPage({
 }: {
 	searchParams: { [key: string]: undefined | string }
 }) {
-	const { page } = await searchParams
+	const { page, ...queryParams } = await searchParams
 
 	const p = page ? parseInt(page) : 1
 
+	const query: Prisma.StudentWhereInput = {}
+
+	if (queryParams) {
+		for (const [key, value] of Object.entries(queryParams)) {
+			if (value != undefined) {
+				switch (key) {
+					case 'search':
+						query.OR = [{ name: { contains: value, mode: 'insensitive' } }, { studentId: { startsWith: value } }]
+						break
+					default:
+						break
+				}
+			}
+		}
+	}
+
 	const [data, count] = await prisma.$transaction([
 		prisma.student.findMany({
+			where: query,
 			take: ITEM_PER_PAGE,
 			skip: ITEM_PER_PAGE * (p - 1),
+			orderBy: {
+				studentId: 'asc',
+			},
 		}),
 		prisma.student.count(),
 	])
@@ -122,16 +143,19 @@ export default async function StudentListPage({
 	return (
 		<div className="mx-16 flex flex-col justify-between">
 			{/* Tools bar Section - Start */}
-			<div>
-				<FormModal
-					tableName="student"
-					type="create"
-					children={
-						<div className="mt-2 rounded-sm bg-gray-200 px-2 py-1 text-xl hover:cursor-pointer hover:bg-gray-300">
-							Thêm sinh viên
-						</div>
-					}
-				/>
+			<div className="flex items-center justify-around">
+				<TableSearch />
+				<div>
+					<FormModal
+						tableName="student"
+						type="create"
+						children={
+							<div className="mt-2 rounded-sm bg-gray-200 px-2 py-1 text-xl hover:cursor-pointer hover:bg-gray-300">
+								Thêm sinh viên
+							</div>
+						}
+					/>
+				</div>
 			</div>
 			{/* Tools bar Section - End */}
 
