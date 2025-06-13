@@ -8,28 +8,44 @@ datasource db {
 }
 
 model Student {
-  id        Int           @id @default(autoincrement())
-  studentId String        @unique
+  id        Int        @id @default(autoincrement())
+  studentId String     @unique
   name      String
   dob       DateTime
   sex       StudentSex
-  faculty   String
   cohort    Int
-  program   String
   address   String?
-  phone     String?       @unique
-  email     String?       @unique
-  status    StudentStatus
+  phone     String?    @unique
+  email     String?    @unique
+
+  statusId  Int
+  facultyId Int
+  programId Int
+
+  status  StudentStatus @relation(fields: [statusId], references: [id])
+  faculty Faculty       @relation(fields: [facultyId], references: [id])
+  program Program       @relation(fields: [programId], references: [id])
+}
+
+model Faculty {
+  id       Int       @id @default(autoincrement())
+  name     String    @unique
+  students Student[]
+}
+
+model Program {
+  id       Int       @id @default(autoincrement())
+  name     String    @unique
+  students Student[]
+}
+
+model StudentStatus {
+  id       Int       @id @default(autoincrement())
+  name     String    @unique
+  students Student[]
 }
 
 enum StudentSex {
   MALE
   FEMALE
-}
-
-enum StudentStatus {
-  ACTIVE
-  GRADUATED
-  SUSPENDED
-  WITHDRAWN
 }
