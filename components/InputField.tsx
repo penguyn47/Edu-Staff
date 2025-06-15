@@ -3,6 +3,7 @@ type InputFieldProps = {
 	type?: string
 	name: string
 	defaultValue?: string
+	defaultChecked?: boolean
 	error?: string
 	hidden?: boolean
 	inputProps?: React.InputHTMLAttributes<HTMLInputElement>
@@ -13,10 +14,29 @@ export default function InputField({
 	type = 'text',
 	name,
 	defaultValue,
+	defaultChecked,
 	error,
 	hidden,
 	inputProps,
 }: InputFieldProps) {
+	if (type == 'checkbox')
+		return (
+			<div>
+				<div className={hidden ? 'hidden' : 'flex w-full flex-col justify-center'}>
+					<label className="mt-2 mb-2 text-xs text-gray-500">{label}</label>
+					<input
+						type={type}
+						name={name}
+						className="mb-2 h-4"
+						{...inputProps}
+						defaultChecked={defaultChecked}
+						defaultValue={defaultValue}
+					/>
+					{error && <div className="text-[10px] text-red-500">{error}</div>}
+				</div>
+			</div>
+		)
+
 	return (
 		<div className={hidden ? 'hidden' : 'flex w-full flex-col'}>
 			<label className="mb-2 text-xs text-gray-500">{label}</label>
@@ -27,7 +47,7 @@ export default function InputField({
 				{...inputProps}
 				defaultValue={defaultValue}
 			/>
-			{error && <div className="text-sm text-red-500">{error}</div>}
+			{error && <div className="mt-2 text-[10px] text-red-500">{error}</div>}
 		</div>
 	)
 }

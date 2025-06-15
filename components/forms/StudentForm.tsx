@@ -5,6 +5,8 @@ import { Dispatch, SetStateAction, useActionState, useEffect, useRef, useState }
 import InputField from '../InputField'
 import { toast } from 'react-toastify'
 import { useRouter } from 'next/navigation'
+import HiddenInputButton from '../HiddenInputButton'
+import IdentificationCard from '../ui/IdentificationCard'
 
 export default function StudentForm({
 	type,
@@ -21,12 +23,7 @@ export default function StudentForm({
 		success: false,
 		error: false,
 		errors: null,
-		data: data
-			? {
-					...data,
-					dob: data.dob instanceof Date ? data.dob.toISOString().split('T')[0] : data.dob,
-				}
-			: null,
+		data: data,
 	})
 
 	const router = useRouter()
@@ -64,7 +61,9 @@ export default function StudentForm({
 								label="Ngày sinh"
 								name={'dob'}
 								type="date"
-								defaultValue={state.data?.dob}
+								defaultValue={
+									state.data?.dob instanceof Date ? state.data?.dob.toISOString().split('T')[0] : state.data?.dob
+								}
 								error={state.errors?.dob}
 							/>
 							<div className={'flex w-full flex-col gap-2'}>
@@ -79,16 +78,105 @@ export default function StudentForm({
 									<option value="MALE">Nam</option>
 									<option value="FEMALE">Nữ</option>
 								</select>
+								{state.errors?.sex && <div className="text-[10px] text-red-500">{state.errors?.sex}</div>}
 							</div>
 						</div>
 						<div className="mx-4 mt-4 font-semibold">2. Thông tin liên lạc</div>
 						<div className="mx-4 grid grid-cols-3 gap-2 gap-x-4">
-							<div className="col-span-2">
-								<InputField
-									label="Địa chỉ"
-									name={'address'}
-									defaultValue={state.data?.address}
-									error={state.errors?.address}
+							<div className="col-span-3">
+								<input type="text" defaultValue={state.data?.permaAddressId} name="permaAddressId" hidden />
+								<HiddenInputButton
+									toggleLabel="includePermaAddress"
+									title="Địa chỉ thường trú"
+									isToggleable={!state.data?.permaAddressId}
+									children={
+										<div className="grid w-full grid-cols-3 gap-x-2">
+											<InputField
+												label="Số nhà"
+												name={'permaAddressHouseNumber'}
+												defaultValue={state.data?.permaAddressHouseNumber || state.data?.permaAddress?.houseNumber}
+												error={state.errors?.permaAddressHouseNumber}
+											/>
+											<InputField
+												label="Đường"
+												name={'permaAddressStreet'}
+												defaultValue={state.data?.permaAddressStreet || state.data?.permaAddress?.street}
+												error={state.errors?.permaAddressStreet}
+											/>
+											<InputField
+												label="Phường/xã"
+												name={'permaAddressWard'}
+												defaultValue={state.data?.permaAddressWard || state.data?.permaAddress?.ward}
+												error={state.errors?.permaAddressWard}
+											/>
+											<InputField
+												label="Quận/huyện"
+												name={'permaAddressDistrict'}
+												defaultValue={state.data?.permaAddressDistrict || state.data?.permaAddress?.district}
+												error={state.errors?.permaAddressDistrict}
+											/>
+											<InputField
+												label="Tỉnh/thành phố"
+												name={'permaAddressCity'}
+												defaultValue={state.data?.permaAddressCity || state.data?.permaAddress?.city}
+												error={state.errors?.permaAddressCity}
+											/>
+											<InputField
+												label="Quốc gia"
+												name={'permaAddressCountry'}
+												defaultValue={state.data?.permaAddressCountry || state.data?.permaAddress?.country}
+												error={state.errors?.permaAddressCountry}
+											/>
+										</div>
+									}
+								/>
+							</div>
+							<div className="col-span-3">
+								<input type="text" defaultValue={state.data?.tempAddressId} name="tempAddressId" hidden />
+								<HiddenInputButton
+									toggleLabel="includeTempAddress"
+									title="Địa chỉ tạm trú"
+									isToggleable={!state.data?.tempAddressId}
+									children={
+										<div className="grid w-full grid-cols-3 gap-x-2">
+											<InputField
+												label="Số nhà"
+												name={'tempAddressHouseNumber'}
+												defaultValue={state.data?.tempAddressHouseNumber || state.data?.tempAddress?.houseNumber}
+												error={state.errors?.tempAddressHouseNumber}
+											/>
+											<InputField
+												label="Đường"
+												name={'tempAddressStreet'}
+												defaultValue={state.data?.tempAddressStreet || state.data?.tempAddress?.street}
+												error={state.errors?.tempAddressStreet}
+											/>
+											<InputField
+												label="Phường/xã"
+												name={'tempAddressWard'}
+												defaultValue={state.data?.tempAddressWard || state.data?.tempAddress?.ward}
+												error={state.errors?.tempAddressWard}
+											/>
+											<InputField
+												label="Quận/huyện"
+												name={'tempAddressDistrict'}
+												defaultValue={state.data?.tempAddressDistrict || state.data?.tempAddress?.district}
+												error={state.errors?.tempAddressDistrict}
+											/>
+											<InputField
+												label="Tỉnh/thành phố"
+												name={'tempAddressCity'}
+												defaultValue={state.data?.tempAddressCity || state.data?.tempAddress?.city}
+												error={state.errors?.tempAddressCity}
+											/>
+											<InputField
+												label="Quốc gia"
+												name={'tempAddressCountry'}
+												defaultValue={state.data?.tempAddressCountry || state.data?.tempAddress?.country}
+												error={state.errors?.tempAddressCountry}
+											/>
+										</div>
+									}
 								/>
 							</div>
 							<InputField
@@ -97,9 +185,14 @@ export default function StudentForm({
 								defaultValue={state.data?.phone}
 								error={state.errors?.phone}
 							/>
-							<div className="col-span-2">
-								<InputField label="Email" name={'email'} defaultValue={state.data?.email} error={state.errors?.email} />
-							</div>
+							<InputField label="Email" name={'email'} defaultValue={state.data?.email} error={state.errors?.email} />
+							<InputField
+								label="Mã bưu cục"
+								name={'zipCode'}
+								defaultValue={state.data?.zipCode}
+								// error={state.errors?.zipCode}
+							/>
+							<InputField label="Quốc tịch" name={'nationality'} defaultValue={state.data?.nationality} />
 						</div>
 					</div>
 					<div>
@@ -127,7 +220,7 @@ export default function StudentForm({
 										</option>
 									))}
 								</select>
-								{state.errors?.status && <div className="text-sm text-red-500">{state.errors?.status}</div>}
+								{state.errors?.faculty && <div className="text-[10px] text-red-500">{state.errors?.faculty}</div>}
 							</div>
 
 							<div className={'col-span-2 flex w-full flex-col gap-2'}>
@@ -144,7 +237,7 @@ export default function StudentForm({
 										</option>
 									))}
 								</select>
-								{state.errors?.status && <div className="text-sm text-red-500">{state.errors?.status}</div>}
+								{state.errors?.program && <div className="text-[10px] text-red-500">{state.errors?.program}</div>}
 							</div>
 							<div className={'flex w-full flex-col gap-2'}>
 								<label className="text-xs text-gray-500">Trạng thái</label>
@@ -160,8 +253,169 @@ export default function StudentForm({
 										</option>
 									))}
 								</select>
-								{state.errors?.status && <div className="text-sm text-red-500">{state.errors?.status}</div>}
+								{state.errors?.status && <div className="text-[10px] text-red-500">{state.errors?.status}</div>}
 							</div>
+						</div>
+						<div className="mx-4 mt-4 font-semibold">4. Giấy tờ chứng thân</div>
+						<div className="col-span-3 mx-4">
+							<input type="text" defaultValue={state.data?.cmnd?.id} name="cmndId" hidden />
+							<HiddenInputButton
+								toggleLabel="includecmnd"
+								title="Chứng minh nhân dân"
+								isToggleable={!state.data?.cmndId}
+								children={
+									<div className="grid w-full grid-cols-3 gap-x-2">
+										<InputField
+											label="Số CMND"
+											name={'cmndNumber'}
+											defaultValue={state.data?.cmndNumber || state.data?.cmnd?.number}
+											error={state.errors?.cmndNumber}
+										/>
+										<InputField
+											type="date"
+											label="Ngày cấp"
+											name={'cmndIssueDate'}
+											defaultValue={
+												state.data?.cmndIssueDate instanceof Date
+													? state.data?.cmndIssueDate.toISOString().split('T')[0]
+													: state.data?.cmndIssueDate || state.data?.cmnd?.issueDate.toISOString().split('T')[0]
+											}
+											error={state.errors?.cmndIssueDate}
+										/>
+										<InputField
+											type="date"
+											label="Ngày hết hạn"
+											name={'cmndExpiryDate'}
+											defaultValue={
+												state.data?.cmndExpiryDate instanceof Date
+													? state.data?.cmndExpiryDate.toISOString().split('T')[0]
+													: state.data?.cmndExpiryDate || state.data?.cmnd?.expiryDate.toISOString().split('T')[0]
+											}
+											error={state.errors?.cmndExpiryDate}
+										/>
+										<div className="col-span-2">
+											<InputField
+												label="Nơi cấp"
+												name={'cmndIssuePlace'}
+												defaultValue={state.data?.cmndIssuePlace || state.data?.cmnd?.issuePlace}
+												error={state.errors?.cmndIssuePlace}
+											/>
+										</div>
+									</div>
+								}
+							/>
+							<HiddenInputButton
+								toggleLabel="includecccd"
+								title="Căn cước công dân"
+								isToggleable={!state.data?.cccdId}
+								children={
+									<div className="grid w-full grid-cols-3 gap-x-2">
+										<input type="text" defaultValue={state.data?.cccd?.id} name="cccdId" hidden />
+										<InputField
+											label="Số CCCD"
+											name={'cccdNumber'}
+											defaultValue={state.data?.cccdNumber || state.data?.cccd?.number}
+											error={state.errors?.cccdNumber}
+										/>
+										<InputField
+											type="date"
+											label="Ngày cấp"
+											name={'cccdIssueDate'}
+											defaultValue={
+												state.data?.cccdIssueDate instanceof Date
+													? state.data?.cccdIssueDate.toISOString().split('T')[0]
+													: state.data?.cccdIssueDate || state.data?.cccd?.issueDate.toISOString().split('T')[0]
+											}
+											error={state.errors?.cccdIssueDate}
+										/>
+										<InputField
+											type="date"
+											label="Ngày hết hạn"
+											name={'cccdExpiryDate'}
+											defaultValue={
+												state.data?.cccdExpiryDate instanceof Date
+													? state.data?.cccdExpiryDate.toISOString().split('T')[0]
+													: state.data?.cccdExpiryDate || state.data?.cccd?.expiryDate.toISOString().split('T')[0]
+											}
+											error={state.errors?.cccdExpiryDate}
+										/>
+										<div className="col-span-2">
+											<InputField
+												label="Nơi cấp"
+												name={'cccdIssuePlace'}
+												defaultValue={state.data?.cccdIssuePlace || state.data?.cccd?.issuePlace}
+												error={state.errors?.cccdIssuePlace}
+											/>
+										</div>
+										<InputField
+											type="checkbox"
+											label="Có gắn chip?"
+											name={'cccdHasChip'}
+											defaultChecked={state.data?.cccdHasChip || state.data?.cccd?.hasChip}
+											error={state.errors?.cccdHasChip}
+										/>
+									</div>
+								}
+							/>
+							<HiddenInputButton
+								toggleLabel="includepassport"
+								title="Hộ chiếu"
+								isToggleable={!state.data?.passportId}
+								children={
+									<div className="grid w-full grid-cols-3 gap-x-2">
+										<input type="text" defaultValue={state.data?.passport?.id} name="passportId" hidden />
+										<InputField
+											label="Số Hộ chiếu"
+											name={'passportNumber'}
+											defaultValue={state.data?.passportNumber || state.data?.passport?.number}
+											error={state.errors?.passportNumber}
+										/>
+										<InputField
+											type="date"
+											label="Ngày cấp"
+											name={'passportIssueDate'}
+											defaultValue={
+												state.data?.passportIssueDate instanceof Date
+													? state.data?.passportIssueDate.toISOString().split('T')[0]
+													: state.data?.passportIssueDate || state.data?.passport?.issueDate.toISOString().split('T')[0]
+											}
+											error={state.errors?.passportIssueDate}
+										/>
+										<InputField
+											type="date"
+											label="Ngày hết hạn"
+											name={'passportExpiryDate'}
+											defaultValue={
+												state.data?.passportExpiryDate instanceof Date
+													? state.data?.passportExpiryDate.toISOString().split('T')[0]
+													: state.data?.passportExpiryDate ||
+														state.data?.passport?.expiryDate.toISOString().split('T')[0]
+											}
+											error={state.errors?.passportExpiryDate}
+										/>
+										<div className="col-span-2">
+											<InputField
+												label="Nơi cấp"
+												name={'passportIssuePlace'}
+												defaultValue={state.data?.passportIssuePlace || state.data?.passport?.issuePlace}
+												error={state.errors?.passportIssuePlace}
+											/>
+										</div>
+										<InputField
+											label="Quốc gia cấp"
+											name={'passportIssuingCountry'}
+											defaultValue={state.data?.passportIssuingCountry || state.data?.passport?.issuingCountry}
+											error={state.errors?.passportIssuingCountry}
+										/>
+										<InputField
+											label="Ghi chú"
+											name={'passportNotes'}
+											defaultValue={state.data?.passportNotes || state.data?.passport?.notes}
+											error={state.errors?.passportNotes}
+										/>
+									</div>
+								}
+							/>
 						</div>
 					</div>
 				</div>

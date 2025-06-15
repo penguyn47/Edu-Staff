@@ -1,7 +1,7 @@
 "use server";
 
 import { success } from "zod/v4";
-import { facultySchema, FacultySchema, programSchema, ProgramSchema, studentSchema, StudentSchema, StudentStatusSchema, studentStatusSchema } from "./formValidationSchemas";
+import { addressSchema, facultySchema, FacultySchema, identificationSchema, programSchema, ProgramSchema, studentSchema, StudentSchema, StudentStatusSchema, studentStatusSchema } from "./formValidationSchemas";
 
 import prisma from "./prisma";
 import { StudentStatus } from "@prisma/client";
@@ -15,52 +15,269 @@ type CurrentState = {
 //              STUDENTS
 // ---------------------------------------------
 export const createStudent = async (currentState: CurrentState, formData : FormData) => {
-    const studentFormData : StudentSchema | any = Object.fromEntries(formData);
+    const allFormData : StudentSchema | any = Object.fromEntries(formData);
+
+    const result : {
+        success: boolean,
+        error: boolean,
+        errors: any,
+        data: any,
+    } = {
+        success: false,
+        error: false,
+        errors: {},
+        data: allFormData,
+    }
+
+    // console.log(allFormData)
+
+    const studentFormData = {
+        studentId: allFormData.studentId,
+        name: allFormData.name,
+        dob:  allFormData.dob,
+        sex: allFormData.sex,
+        phone: allFormData.phone,
+        email: allFormData.email,
+        zipCode: parseInt(allFormData.zipCode),
+        cohort: allFormData.cohort? parseInt(allFormData.cohort) : -1,
+        facultyId: allFormData.facultyId? parseInt(allFormData.facultyId) : -1,
+        programId: allFormData.programId? parseInt(allFormData.programId) : -1,
+        statusId:  allFormData.statusId? parseInt(allFormData.statusId) : -1,
+
+        permaAddressId: parseInt(allFormData.permaAddressId) || undefined,
+        tempAddressId: parseInt(allFormData.tempAddressId) || undefined,
+
+        cmndId:    parseInt(allFormData.cmndId) || undefined,
+        cccdId:    parseInt(allFormData.cccdId) || undefined,
+        passportId:parseInt(allFormData.passportId) || undefined,
+        nationality: allFormData.nationality,
+    }
+
+    const permaAddressFormData = {
+        houseNumber: allFormData.permaAddressHouseNumber,
+        street: allFormData.permaAddressStreet,
+        ward: allFormData.permaAddressWard,
+        district: allFormData.permaAddressDistrict,
+        city: allFormData.permaAddressCity,
+        country: allFormData.permaAddressCountry,
+    }
+
+    const tempAddressFormData = {
+        houseNumber: allFormData.tempAddressHouseNumber,
+        street: allFormData.tempAddressStreet,
+        ward: allFormData.tempAddressWard,
+        district: allFormData.permaAddressDistrict,
+        city: allFormData.tempAddressCity,
+        country: allFormData.tempAddressCountry,
+    }
+
+    const cccdFormData = {
+        number: allFormData.cccdNumber,
+        issueDate: allFormData.cccdIssueDate,
+        expiryDate: allFormData.cccdExpiryDate,
+        issuePlace: allFormData.cccdIssuePlace,
+        hasChip: allFormData?.cccdHasChip == "on" ? true : false,
+    }
+
+    const cmndFormData = {
+        number: allFormData.cmndNumber,
+        issueDate: allFormData.cmndIssueDate,
+        expiryDate: allFormData.cmndExpiryDate,
+        issuePlace: allFormData.cmndIssuePlace,
+    }
+
+    const passportFormData = {
+        number: allFormData.passportNumber,
+        issueDate: allFormData.passportIssueDate,
+        expiryDate: allFormData.passportExpiryDate,
+        issuePlace: allFormData.passportIssuePlace,
+        issuingCountry: allFormData.passportIssuingCountry,
+        notes: allFormData.passportNotes,
+    }
+
+    // console.log(cccdFormData);
+
     const validatedStudentFormData = studentSchema.safeParse(studentFormData);
+    const validatedPermaAddressFormData = addressSchema.safeParse(permaAddressFormData);
+    const validatedTempAddressFormData = addressSchema.safeParse(tempAddressFormData);
+
+    const validatedcmndFormData = identificationSchema.safeParse(cmndFormData);
+    const validatedcccdFormData = identificationSchema.safeParse(cccdFormData);
+    const validatedpassportFormData = identificationSchema.safeParse(passportFormData);
+
     try {
             if (!validatedStudentFormData.success) {
                 const formFieldErrors = validatedStudentFormData.error.flatten().fieldErrors;
-                console.log(studentFormData)
-                return {
-                    success: false,
-                    error: true,
-                    errors: {
-                        studentId: formFieldErrors?.studentId?.[0],
-                        name: formFieldErrors?.name?.[0],
-                        dob: formFieldErrors?.dob?.[0],
-                        sex: formFieldErrors?.sex?.[0],
-                        faculty: formFieldErrors?.facultyId?.[0],
-                        cohort: formFieldErrors?.cohort?.[0],
-                        program: formFieldErrors?.programId?.[0],
-                        address: formFieldErrors?.address?.[0],
-                        phone: formFieldErrors?.phone?.[0],
-                        email: formFieldErrors?.email?.[0],
-                        status: formFieldErrors?.statusId?.[0],
-                    },
-                    data: studentFormData,
-                };
+                result.errors = {
+                    ...result.errors,
+                    studentId: formFieldErrors?.studentId?.[0],
+                    name: formFieldErrors?.name?.[0],
+                    dob: formFieldErrors?.dob?.[0],
+                    sex: formFieldErrors?.sex?.[0],
+                    faculty: formFieldErrors?.facultyId?.[0],
+                    cohort: formFieldErrors?.cohort?.[0],
+                    program: formFieldErrors?.programId?.[0],
+                    phone: formFieldErrors?.phone?.[0],
+                    email: formFieldErrors?.email?.[0],
+                    status: formFieldErrors?.statusId?.[0],
+                }
+
+                if(allFormData.includePermaAddress) {
+                    if(!validatedPermaAddressFormData.success){
+                        const permaAddressformFieldErrors = validatedPermaAddressFormData.error.flatten().fieldErrors;
+                        result.errors = {
+                            ...result.errors,
+                            permaAddressHouseNumber: permaAddressformFieldErrors?.houseNumber?.[0],
+                            permaAddressStreet: permaAddressformFieldErrors?.street?.[0],
+                            permaAddressWard: permaAddressformFieldErrors?.ward?.[0],
+                            permaAddressDistrict: permaAddressformFieldErrors?.district?.[0],
+                            permaAddressCity: permaAddressformFieldErrors?.city?.[0],
+                            permaAddressCountry: permaAddressformFieldErrors?.country?.[0],
+                        }
+                    }
+                }
+
+                if(allFormData.includeTempAddress) {
+                    if(!validatedTempAddressFormData.success){
+                        const tempAddressformFieldErrors = validatedTempAddressFormData.error.flatten().fieldErrors;
+                        result.errors = {
+                            ...result.errors,
+                            tempAddressHouseNumber: tempAddressformFieldErrors?.houseNumber?.[0],
+                            tempAddressStreet: tempAddressformFieldErrors?.street?.[0],
+                            tempAddressWard: tempAddressformFieldErrors?.ward?.[0],
+                            tempAddressDistrict: tempAddressformFieldErrors?.district?.[0],
+                            tempAddressCity: tempAddressformFieldErrors?.city?.[0],
+                            tempAddressCountry: tempAddressformFieldErrors?.country?.[0],
+                        }
+                    }
+                }
+                
+                if(allFormData.includecmnd) {
+                    if(!validatedcmndFormData.success){
+                        const cmndFormFieldErrors = validatedcmndFormData.error.flatten().fieldErrors;
+                        result.errors = {
+                            ...result.errors,
+                            cmndNumber: cmndFormFieldErrors?.number?.[0],
+                            cmndIssueDate: cmndFormFieldErrors?.issueDate?.[0],
+                            cmndExpiryDate: cmndFormFieldErrors?.expiryDate?.[0],
+                            cmndIssuePlace: cmndFormFieldErrors?.issuePlace?.[0],
+                        }
+                    }
+                }
+
+                if(allFormData.includecccd) {
+                    if(!validatedcccdFormData.success){
+                        const cccdFormFieldErrors = validatedcccdFormData.error.flatten().fieldErrors;
+                        result.errors = {
+                            ...result.errors,
+                            cccdNumber: cccdFormFieldErrors?.number?.[0],
+                            cccdIssueDate: cccdFormFieldErrors?.issueDate?.[0],
+                            cccdExpiryDate: cccdFormFieldErrors?.expiryDate?.[0],
+                            cccdIssuePlace: cccdFormFieldErrors?.issuePlace?.[0],
+                            cccdHasChip: cccdFormFieldErrors?.hasChip?.[0],
+                        }
+                    }
+                }
+
+                if(allFormData.includepassport) {
+                    if(!validatedpassportFormData.success){
+                        const passportFormFieldErrors = validatedpassportFormData.error.flatten().fieldErrors;
+                        result.errors = {
+                            ...result.errors,
+                            passportNumber: passportFormFieldErrors?.number?.[0],
+                            passportIssueDate: passportFormFieldErrors?.issueDate?.[0],
+                            passportExpiryDate: passportFormFieldErrors?.expiryDate?.[0],
+                            passportIssuePlace: passportFormFieldErrors?.issuePlace?.[0],
+                            passportIssuingCountry: passportFormFieldErrors?.issuingCountry?.[0],
+                            passportNotes: passportFormFieldErrors?.notes?.[0],
+                        }
+                    }
+                }
+
+                return result;
             }
 
-            const refinedData = {
-                ...validatedStudentFormData.data,
-                dob: new Date(validatedStudentFormData.data.dob),
-                programId: parseInt(validatedStudentFormData.data.programId),
-                facultyId: parseInt(validatedStudentFormData.data.facultyId),
-                statusId: parseInt(validatedStudentFormData.data.statusId),
+            let permaAddressId : number = 0;
+            let tempAddressId : number = 0;
+
+            let cmndId : number = 0;
+            let cccdId : number = 0;
+            let passportId : number = 0;
+
+            if(allFormData.includePermaAddress) {
+                const permaAddr = await prisma.address.create({
+                    data: permaAddressFormData
+                })
+                permaAddressId = permaAddr.id;
+            }
+
+            if(allFormData.includeTempAddress) {
+                const tempAddr = await prisma.address.create({
+                    data: tempAddressFormData
+                })
+                tempAddressId = tempAddr.id;
+            }
+
+            if(allFormData.includecmnd) {
+                const cmnd = await prisma.identification.create({
+                    data: {
+                        ...cmndFormData,
+                        issueDate: new Date(cmndFormData.issueDate),
+                        expiryDate: new Date(cmndFormData.expiryDate),
+                        type: 'CMND'
+                    }
+                })
+                cmndId = cmnd.id;
+            }
+
+            if(allFormData.includecccd) {
+                const cccd = await prisma.identification.create({
+                    data: {
+                        ...cccdFormData,
+                        issueDate: new Date(cccdFormData.issueDate),
+                        expiryDate: new Date(cccdFormData.expiryDate),
+                        type: 'CCCD'
+                    }
+                })
+                cccdId = cccd.id;
+            }
+
+            if(allFormData.includepassport) {
+                const passport = await prisma.identification.create({
+                    data: {
+                        ...passportFormData,
+                        issueDate: new Date(passportFormData.issueDate),
+                        expiryDate: new Date(passportFormData.expiryDate),
+                        type: 'PASSPORT'
+                    }
+                })
+                passportId = passport.id;
             }
 
             await prisma.student.create({
-                data: refinedData,
+                data: {
+                    ...studentFormData,
+                    dob: new Date(studentFormData.dob),
+                    facultyId: studentFormData.facultyId,
+                    programId: studentFormData.programId,
+                    statusId:  studentFormData.statusId,
+
+                    permaAddressId: permaAddressId || null,
+                    tempAddressId: tempAddressId || null,
+
+                    cmndId: cmndId || null,
+                    cccdId: cccdId || null,
+                    passportId: passportId || null,
+                },
             })
 
-            return {
-                success: true,
-                error:false,
-                errors: null,
-                data: null,
-            }
+            result.success = true;
+            result.error = false;
+
+            return result;
     }
     catch(err : any) {
+        console.log(err);
         if(err.code == 'P2002') {
             const field = err.meta?.target?.[0] || 'unknown';
             return {
@@ -69,14 +286,14 @@ export const createStudent = async (currentState: CurrentState, formData : FormD
                 errors: {
                     [field]: "Đã tồn tại",
                 },
-                data: studentFormData,
+                data: allFormData,
             }
         }
         return {
             success: false,
             error: true,
             errors: null,
-            data: studentFormData,
+            data: allFormData,
         }
     }
 } 
@@ -84,6 +301,52 @@ export const createStudent = async (currentState: CurrentState, formData : FormD
 export const deleteStudent = async (currentState: CurrentState, data : FormData) => {
     try {
             const id = data.get('id') as string;
+
+            const student = await prisma.student.findUnique({
+                where: {
+                    id: parseInt(id)
+                }
+            });
+
+            if(student?.permaAddressId) {
+                await prisma.address.delete({
+                    where: {
+                        id: student?.permaAddressId
+                    }
+                })
+            }
+
+            if(student?.tempAddressId) {
+                await prisma.address.delete({
+                    where: {
+                        id: student?.tempAddressId
+                    }
+                })
+            }
+
+            if(student?.cmndId) {
+                await prisma.identification.delete({
+                    where: {
+                        id: student?.cmndId
+                    }
+                })
+            }
+
+            if(student?.cccdId) {
+                await prisma.identification.delete({
+                    where: {
+                        id: student?.cccdId
+                    }
+                })
+            }
+
+            if(student?.passportId) {
+                await prisma.identification.delete({
+                    where: {
+                        id: student?.passportId
+                    }
+                })
+            }
 
             await prisma.student.delete({
                 where: {
@@ -106,16 +369,118 @@ export const deleteStudent = async (currentState: CurrentState, data : FormData)
 } 
 
 export const updateStudent = async (currentState: CurrentState, formData : FormData) => {
-    const studentFormData : StudentSchema | any = Object.fromEntries(formData);
-    const validatedStudentFormData = studentSchema.safeParse(studentFormData);
-    try {
-            if (!validatedStudentFormData.success) {
-                const formFieldErrors = validatedStudentFormData.error.flatten().fieldErrors;
+    const parsedFormData : StudentSchema | any = Object.fromEntries(formData);
 
-                return {
-                    success: false,
-                    error: true,
-                    errors: {
+    const allFormData = {
+        ...parsedFormData,
+        permaAddressId: parseInt(parsedFormData.permaAddressId) || null,
+        tempAddressId:  parseInt(parsedFormData.tempAddressId) || null,
+        cmndId:         parseInt(parsedFormData.cmndId) || null,
+        cccdId:         parseInt(parsedFormData.cccdId) || null,
+        passportId:     parseInt(parsedFormData.passportId) || null,
+
+    }
+
+    // console.log(allFormData)
+
+    const result : {
+        success: boolean,
+        error: boolean,
+        errors: any,
+        data: any,
+    } = {
+        success: false,
+        error: false,
+        errors: {},
+        data: allFormData,
+    }
+
+    const studentFormData = {
+        studentId: allFormData.studentId,
+        name: allFormData.name,
+        dob:  allFormData.dob,
+        sex: allFormData.sex,
+        phone: allFormData.phone,
+        email: allFormData.email,
+        zipCode: parseInt(allFormData.zipCode),
+        cohort: allFormData.cohort? parseInt(allFormData.cohort) : -1,
+        facultyId: allFormData.facultyId? parseInt(allFormData.facultyId) : -1,
+        programId: allFormData.programId? parseInt(allFormData.programId) : -1,
+        statusId:  allFormData.statusId? parseInt(allFormData.statusId) : -1,
+
+        permaAddressId: parseInt(allFormData.permaAddressId) || undefined,
+        tempAddressId: parseInt(allFormData.tempAddressId) || undefined,
+
+        cmndId:    parseInt(allFormData.cmndId) || undefined,
+        cccdId:    parseInt(allFormData.cccdId) || undefined,
+        passportId:parseInt(allFormData.passportId) || undefined,
+        nationality: allFormData.nationality,
+    }
+
+    const permaAddressFormData = {
+        houseNumber: allFormData.permaAddressHouseNumber,
+        street: allFormData.permaAddressStreet,
+        ward: allFormData.permaAddressWard,
+        district: allFormData.permaAddressDistrict,
+        city: allFormData.permaAddressCity,
+        country: allFormData.permaAddressCountry,
+    }
+
+    const tempAddressFormData = {
+        houseNumber: allFormData.tempAddressHouseNumber,
+        street: allFormData.tempAddressStreet,
+        ward: allFormData.tempAddressWard,
+        district: allFormData.permaAddressDistrict,
+        city: allFormData.tempAddressCity,
+        country: allFormData.tempAddressCountry,
+    }
+
+    const cccdFormData = {
+        number: allFormData.cccdNumber,
+        issueDate: allFormData.cccdIssueDate,
+        expiryDate: allFormData.cccdExpiryDate,
+        issuePlace: allFormData.cccdIssuePlace,
+        hasChip: allFormData?.cccdHasChip == "on" ? true : false,
+    }
+
+    const cmndFormData = {
+        number: allFormData.cmndNumber,
+        issueDate: allFormData.cmndIssueDate,
+        expiryDate: allFormData.cmndExpiryDate,
+        issuePlace: allFormData.cmndIssuePlace,
+    }
+
+    const passportFormData = {
+        number: allFormData.passportNumber,
+        issueDate: allFormData.passportIssueDate,
+        expiryDate: allFormData.passportExpiryDate,
+        issuePlace: allFormData.passportIssuePlace,
+        issuingCountry: allFormData.passportIssuingCountry,
+        notes: allFormData.passportNotes,
+    }
+
+    const validatedStudentFormData = studentSchema.safeParse(studentFormData);
+    const validatedPermaAddressFormData = addressSchema.safeParse(permaAddressFormData);
+    const validatedTempAddressFormData = addressSchema.safeParse(tempAddressFormData);
+
+    const validatedcmndFormData = identificationSchema.safeParse(cmndFormData);
+    const validatedcccdFormData = identificationSchema.safeParse(cccdFormData);
+    const validatedpassportFormData = identificationSchema.safeParse(passportFormData);
+
+    const isValidationSuccess = true
+    && validatedStudentFormData.success
+    && (validatedPermaAddressFormData.success || !allFormData.includePermaAddress)
+    && (validatedTempAddressFormData.success || !allFormData.includeTempAddress)
+    && (validatedcmndFormData.success || !allFormData.includecmnd)
+    && (validatedcccdFormData.success || !allFormData.includecccd)
+    && (validatedpassportFormData.success || !allFormData.includepassport)
+
+    try {
+            if (!isValidationSuccess) {
+                if(!validatedStudentFormData.success){
+                    const formFieldErrors = validatedStudentFormData.error.flatten().fieldErrors;
+                    result.errors = {
+                        ...result.errors,
                         studentId: formFieldErrors?.studentId?.[0],
                         name: formFieldErrors?.name?.[0],
                         dob: formFieldErrors?.dob?.[0],
@@ -123,54 +488,250 @@ export const updateStudent = async (currentState: CurrentState, formData : FormD
                         faculty: formFieldErrors?.facultyId?.[0],
                         cohort: formFieldErrors?.cohort?.[0],
                         program: formFieldErrors?.programId?.[0],
-                        address: formFieldErrors?.address?.[0],
                         phone: formFieldErrors?.phone?.[0],
                         email: formFieldErrors?.email?.[0],
                         status: formFieldErrors?.statusId?.[0],
-                    },
-                    data: studentFormData,
-                };
+                    }
+                }
+
+                if(allFormData.includePermaAddress) {
+                    if(!validatedPermaAddressFormData.success){
+                        const permaAddressformFieldErrors = validatedPermaAddressFormData.error.flatten().fieldErrors;
+                        result.errors = {
+                            ...result.errors,
+                            permaAddressHouseNumber: permaAddressformFieldErrors?.houseNumber?.[0],
+                            permaAddressStreet: permaAddressformFieldErrors?.street?.[0],
+                            permaAddressWard: permaAddressformFieldErrors?.ward?.[0],
+                            permaAddressDistrict: permaAddressformFieldErrors?.district?.[0],
+                            permaAddressCity: permaAddressformFieldErrors?.city?.[0],
+                            permaAddressCountry: permaAddressformFieldErrors?.country?.[0],
+                        }
+                    }
+                }
+
+                if(allFormData.includeTempAddress) {
+                    if(!validatedTempAddressFormData.success){
+                        const tempAddressformFieldErrors = validatedTempAddressFormData.error.flatten().fieldErrors;
+                        result.errors = {
+                            ...result.errors,
+                            tempAddressHouseNumber: tempAddressformFieldErrors?.houseNumber?.[0],
+                            tempAddressStreet: tempAddressformFieldErrors?.street?.[0],
+                            tempAddressWard: tempAddressformFieldErrors?.ward?.[0],
+                            tempAddressDistrict: tempAddressformFieldErrors?.district?.[0],
+                            tempAddressCity: tempAddressformFieldErrors?.city?.[0],
+                            tempAddressCountry: tempAddressformFieldErrors?.country?.[0],
+                        }
+                    }
+                }
+                
+                if(allFormData.includecmnd) {
+                    if(!validatedcmndFormData.success){
+                        const cmndFormFieldErrors = validatedcmndFormData.error.flatten().fieldErrors;
+                        result.errors = {
+                            ...result.errors,
+                            cmndNumber: cmndFormFieldErrors?.number?.[0],
+                            cmndIssueDate: cmndFormFieldErrors?.issueDate?.[0],
+                            cmndExpiryDate: cmndFormFieldErrors?.expiryDate?.[0],
+                            cmndIssuePlace: cmndFormFieldErrors?.issuePlace?.[0],
+                        }
+                        
+                    }
+                }
+
+                if(allFormData.includecccd) {
+                    if(!validatedcccdFormData.success){
+                        const cccdFormFieldErrors = validatedcccdFormData.error.flatten().fieldErrors;
+                        result.errors = {
+                            ...result.errors,
+                            cccdNumber: cccdFormFieldErrors?.number?.[0],
+                            cccdIssueDate: cccdFormFieldErrors?.issueDate?.[0],
+                            cccdExpiryDate: cccdFormFieldErrors?.expiryDate?.[0],
+                            cccdIssuePlace: cccdFormFieldErrors?.issuePlace?.[0],
+                            cccdHasChip: cccdFormFieldErrors?.hasChip?.[0],
+                        }
+                    }
+                }
+
+                if(allFormData.includepassport) {
+                    if(!validatedpassportFormData.success){
+                        const passportFormFieldErrors = validatedpassportFormData.error.flatten().fieldErrors;
+                        result.errors = {
+                            ...result.errors,
+                            passportNumber: passportFormFieldErrors?.number?.[0],
+                            passportIssueDate: passportFormFieldErrors?.issueDate?.[0],
+                            passportExpiryDate: passportFormFieldErrors?.expiryDate?.[0],
+                            passportIssuePlace: passportFormFieldErrors?.issuePlace?.[0],
+                            passportIssuingCountry: passportFormFieldErrors?.issuingCountry?.[0],
+                            passportNotes: passportFormFieldErrors?.notes?.[0],
+                        }
+                    }
+                }
+
+                result.error = true;
+                return result;
             }
 
-            const refinedData = {
-                ...validatedStudentFormData.data,
-                dob: new Date(validatedStudentFormData.data.dob),
-                programId: parseInt(validatedStudentFormData.data.programId),
-                facultyId: parseInt(validatedStudentFormData.data.facultyId),
-                statusId: parseInt(validatedStudentFormData.data.statusId),
+            let permaAddressId : number = 0;
+            let tempAddressId : number = 0;
+
+            let cmndId : number = 0;
+            let cccdId : number = 0;
+            let passportId : number = 0;
+
+            if(allFormData.includePermaAddress || allFormData.permaAddressId) {
+                if (allFormData.permaAddressId) {
+                    await prisma.address.update({
+                        where: {
+                            id: allFormData.permaAddressId,
+                        },
+                        data: permaAddressFormData
+                    })
+                } else {
+                    const permaAddr = await prisma.address.create({
+                        data: permaAddressFormData
+                    })
+                    permaAddressId = permaAddr.id;
+                }
+            }
+
+            if(allFormData.includeTempAddress || allFormData.tempAddressId) {
+                if(allFormData.tempAddressId){
+                    await prisma.address.update({
+                        where: {
+                            id: allFormData.tempAddressId,
+                        },
+                        data: tempAddressFormData
+                    })
+                } else {
+                    const tempAddr = await prisma.address.create({
+                        data: tempAddressFormData
+                    })
+                    tempAddressId = tempAddr.id;
+                }
+            }
+
+            if(allFormData.includecmnd || allFormData.cmndId) {
+                if(allFormData.cmndId){
+                    await prisma.identification.update({
+                        where: {
+                            id: allFormData.cmndId,
+                        },
+                        data: {
+                            ...cmndFormData,
+                            issueDate: new Date(cmndFormData.issueDate),
+                            expiryDate: new Date(cmndFormData.expiryDate),
+                            type: 'CMND'
+                        }
+                    })
+                } else {
+                    const cmnd = await prisma.identification.create({
+                        data: {
+                            ...cmndFormData,
+                            issueDate: new Date(cmndFormData.issueDate),
+                            expiryDate: new Date(cmndFormData.expiryDate),
+                            type: 'CMND'
+                        }
+                    })
+                    cmndId = cmnd.id;
+                }
+            }
+
+            if(allFormData.includecccd || allFormData.cccdId) {
+                if(allFormData.cccdId) {
+                    await prisma.identification.update({
+                        where: {
+                            id: allFormData.cccdId,
+                        },
+                        data: {
+                            ...cccdFormData,
+                            issueDate: new Date(cccdFormData.issueDate),
+                            expiryDate: new Date(cccdFormData.expiryDate),
+                            type: 'CCCD'
+                        }
+                    })
+                } else {
+                    const cccd = await prisma.identification.create({
+                        data: {
+                            ...cccdFormData,
+                            issueDate: new Date(cccdFormData.issueDate),
+                            expiryDate: new Date(cccdFormData.expiryDate),
+                            type: 'CCCD'
+                        }
+                    })
+                    cccdId = cccd.id;
+                }
+            }
+
+            if(allFormData.includepassport || allFormData.passportId) {
+                if(allFormData.passportId){
+                    await prisma.identification.update({
+                        where: {
+                            id: allFormData.passportId,
+                        },
+                        data: {
+                            ...passportFormData,
+                            issueDate: new Date(passportFormData.issueDate),
+                            expiryDate: new Date(passportFormData.expiryDate),
+                            type: 'PASSPORT'
+                        }
+                    })
+                } else {
+                    const passport = await prisma.identification.create({
+                        data: {
+                            ...passportFormData,
+                            issueDate: new Date(passportFormData.issueDate),
+                            expiryDate: new Date(passportFormData.expiryDate),
+                            type: 'PASSPORT'
+                        }
+                    })
+                    passportId = passport.id;
+                }
+                
             }
 
             await prisma.student.update({
                 where: {
-                    studentId: refinedData.studentId,
+                    studentId: allFormData.studentId,
                 },
-                data: refinedData
+                data: {
+                    ...studentFormData,
+                    dob: new Date(studentFormData.dob),
+                    facultyId: studentFormData.facultyId,
+                    programId: studentFormData.programId,
+                    statusId:  studentFormData.statusId,
+
+                    permaAddressId: allFormData.permaAddressId || permaAddressId || null,
+                    tempAddressId: allFormData.tempAddressId || tempAddressId || null,
+
+                    cmndId: allFormData.cmndId || cmndId || null,
+                    cccdId: allFormData.cccdId || cccdId || null,
+                    passportId: allFormData.passportId || passportId || null,
+                },
             })
 
-            return {
-                success: true,
-                error:false,
-                errors: null,
-                data: null,
-            }
+            result.success = true;
+            result.error = false;
+
+            return result;
     }
     catch(err : any) {
         if(err.code == 'P2002') {
             const field = err.meta?.target?.[0] || 'unknown';
+            console.log(err.meta)
             return {
                 success: false,
                 error: true,
                 errors: {
                     [field]: "Đã tồn tại",
                 },
-                data: studentFormData,
+                data: allFormData,
             }
         }
         return {
             success: false,
             error: true,
             errors: null,
-            data: studentFormData,
+            data: allFormData,
         }
     }
 } 
