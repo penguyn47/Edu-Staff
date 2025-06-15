@@ -37,12 +37,19 @@ model Student {
   permaAddressId Int?
   tempAddressId  Int?
 
-  status          StudentStatus    @relation(fields: [statusId], references: [id])
-  faculty         Faculty          @relation(fields: [facultyId], references: [id])
-  program         Program          @relation(fields: [programId], references: [id])
-  permaAddress    Address?         @relation("PermanentAddress", fields: [permaAddressId], references: [id])
-  tempAddress     Address?         @relation("TemporaryAddress", fields: [tempAddressId], references: [id])
-  identifications Identification[]
+  status       StudentStatus @relation(fields: [statusId], references: [id])
+  faculty      Faculty       @relation(fields: [facultyId], references: [id])
+  program      Program       @relation(fields: [programId], references: [id])
+  permaAddress Address?      @relation("PermanentAddress", fields: [permaAddressId], references: [id])
+  tempAddress  Address?      @relation("TemporaryAddress", fields: [tempAddressId], references: [id])
+
+  cccdId     Int? @unique
+  cmndId     Int? @unique
+  passportId Int? @unique
+
+  cccd     Identification? @relation("CCCD", fields: [cccdId], references: [id])
+  cmnd     Identification? @relation("CMND", fields: [cmndId], references: [id])
+  passport Identification? @relation("PASSPORT", fields: [passportId], references: [id])
 }
 
 model Faculty {
@@ -76,15 +83,16 @@ model Address {
 }
 
 model Identification {
-  id             Int                @id @default(autoincrement())
-  type           IdentificationType
-  number         String             @unique
-  issueDate      DateTime
-  expiryDate     DateTime?
-  issuePlace     String
-  hasChip        Boolean?
-  issuingCountry String?
-  notes          String?
-  studentId      Int?
-  student        Student?           @relation(fields: [studentId], references: [id])
+  id              Int                @id @default(autoincrement())
+  type            IdentificationType
+  number          String
+  issueDate       DateTime
+  expiryDate      DateTime?
+  issuePlace      String
+  hasChip         Boolean?
+  issuingCountry  String?
+  notes           String?
+  studentCCCD     Student?           @relation("CCCD")
+  studentCMND     Student?           @relation("CMND")
+  studentPASSPORT Student?           @relation("PASSPORT")
 }
