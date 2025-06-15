@@ -7,6 +7,7 @@ import { Faculty, Prisma, Program, Student, StudentSex, StudentStatus } from '@p
 import prisma from '@/lib/prisma'
 import FormModal from '@/components/FormModal'
 import TableSearch from '@/components/ui/TableSearch'
+import { logger } from '@/services/logger'
 
 type StudentList = Student & { faculty: Faculty; program: Program; status: StudentStatus }
 
@@ -142,6 +143,11 @@ export default async function StudentListPage({
 				faculty: true,
 				program: true,
 				status: true,
+				tempAddress: true,
+				permaAddress: true,
+				cccd: true,
+				cmnd: true,
+				passport: true,
 			},
 		}),
 		prisma.student.count({
