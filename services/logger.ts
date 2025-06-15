@@ -1,61 +1,28 @@
-// services/logger.ts
 import { createLogger, format, transports, Logger } from 'winston';
 import DailyRotateFile from 'winston-daily-rotate-file';
-
-// Định nghĩa các cấp độ log tùy chỉnh (nếu cần)
-const customLevels = {
-  levels: {
-    error: 0,
-    warn: 1,
-    info: 2,
-    http: 3,
-    debug: 4,
-  },
-  colors: {
-    error: 'red',
-    warn: 'yellow',
-    info: 'cyan',
-    http: 'green',
-    debug: 'blue',
-  },
-};
 
 const getLogger = (): Logger => {
   const logFormat = format.combine(
     format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
     format.printf(({ timestamp, level, message }) => {
       return `${timestamp} [${level.toUpperCase()}]: ${message}`;
-    }),
-    format.colorize({ all: true })
+    })
   );
 
   const logger = createLogger({
-    levels: customLevels.levels,
-    level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
+    level: process.env.NODE_ENV === 'production' ? 'info' : 'debug', // Chỉ ghi debug trong dev
     format: logFormat,
     transports: [
-      new transports.Console({
-        format: format.combine(
-          format.colorize(),
-          logFormat
-        ),
-      }),
+      // Ghi log ra console
+      new transports.Console(),
+      // Ghi log ra file, xoay vòng hàng ngày
       new DailyRotateFile({
         filename: 'logs/app-%DATE%.log',
         datePattern: 'YYYY-MM-DD',
         zippedArchive: true,
-        maxSize: '20m',
-        maxFiles: '14d',
-        format: format.combine(format.timestamp(), format.json()),
-      }),
-      new DailyRotateFile({
-        filename: 'logs/error-%DATE%.log',
-        datePattern: 'YYYY-MM-DD',
-        zippedArchive: true,
-        maxSize: '20m',
-        maxFiles: '14d',
-        level: 'error',
-        format: format.combine(format.timestamp(), format.json()),
+        maxSize: '20m', // Kích thước tối đa mỗi file
+        maxFiles: '14d', // Lưu trữ log trong 14 ngày
+        format: format.combine(format.timestamp(), format.json()), // File log dùng JSON
       }),
     ],
     exitOnError: false,
