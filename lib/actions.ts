@@ -5,6 +5,7 @@ import { addressSchema, facultySchema, FacultySchema, identificationSchema, prog
 
 import prisma from "./prisma";
 import { StudentStatus } from "@prisma/client";
+import { logger } from "@/services/logger";
 
 type CurrentState = {
     success: boolean,
@@ -30,6 +31,8 @@ export const createStudent = async (currentState: CurrentState, formData : FormD
     }
 
     // console.log(allFormData)
+
+    logger.info("[server-actions]: (Create-student): Startded.");
 
     const studentFormData = {
         studentId: allFormData.studentId,
@@ -105,21 +108,31 @@ export const createStudent = async (currentState: CurrentState, formData : FormD
     const validatedcccdFormData = identificationSchema.safeParse(cccdFormData);
     const validatedpassportFormData = identificationSchema.safeParse(passportFormData);
 
+    const isValidationSuccess = true
+    && validatedStudentFormData.success
+    && (validatedPermaAddressFormData.success || !allFormData.includePermaAddress)
+    && (validatedTempAddressFormData.success || !allFormData.includeTempAddress)
+    && (validatedcmndFormData.success || !allFormData.includecmnd)
+    && (validatedcccdFormData.success || !allFormData.includecccd)
+    && (validatedpassportFormData.success || !allFormData.includepassport)
+
     try {
-            if (!validatedStudentFormData.success) {
-                const formFieldErrors = validatedStudentFormData.error.flatten().fieldErrors;
-                result.errors = {
-                    ...result.errors,
-                    studentId: formFieldErrors?.studentId?.[0],
-                    name: formFieldErrors?.name?.[0],
-                    dob: formFieldErrors?.dob?.[0],
-                    sex: formFieldErrors?.sex?.[0],
-                    faculty: formFieldErrors?.facultyId?.[0],
-                    cohort: formFieldErrors?.cohort?.[0],
-                    program: formFieldErrors?.programId?.[0],
-                    phone: formFieldErrors?.phone?.[0],
-                    email: formFieldErrors?.email?.[0],
-                    status: formFieldErrors?.statusId?.[0],
+            if (!isValidationSuccess) {
+                if(!validatedStudentFormData.success){
+                    const formFieldErrors = validatedStudentFormData.error.flatten().fieldErrors;
+                    result.errors = {
+                        ...result.errors,
+                        studentId: formFieldErrors?.studentId?.[0],
+                        name: formFieldErrors?.name?.[0],
+                        dob: formFieldErrors?.dob?.[0],
+                        sex: formFieldErrors?.sex?.[0],
+                        faculty: formFieldErrors?.facultyId?.[0],
+                        cohort: formFieldErrors?.cohort?.[0],
+                        program: formFieldErrors?.programId?.[0],
+                        phone: formFieldErrors?.phone?.[0],
+                        email: formFieldErrors?.email?.[0],
+                        status: formFieldErrors?.statusId?.[0],
+                    }
                 }
 
                 if(allFormData.includePermaAddress) {
@@ -162,6 +175,7 @@ export const createStudent = async (currentState: CurrentState, formData : FormD
                             cmndExpiryDate: cmndFormFieldErrors?.expiryDate?.[0],
                             cmndIssuePlace: cmndFormFieldErrors?.issuePlace?.[0],
                         }
+                        
                     }
                 }
 
@@ -194,6 +208,7 @@ export const createStudent = async (currentState: CurrentState, formData : FormD
                     }
                 }
 
+                result.error = true;
                 return result;
             }
 
