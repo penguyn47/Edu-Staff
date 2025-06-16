@@ -8,6 +8,7 @@ import prisma from '@/lib/prisma'
 import FormModal from '@/components/FormModal'
 import TableSearch from '@/components/ui/TableSearch'
 import { logger } from '@/services/logger'
+import FilterBar from '@/components/ui/FilterBar'
 
 type StudentList = Student & { faculty: Faculty; program: Program; status: StudentStatus }
 
@@ -124,6 +125,10 @@ export default async function StudentListPage({
 					case 'search':
 						query.OR = [{ name: { contains: value, mode: 'insensitive' } }, { studentId: { startsWith: value } }]
 						break
+					case 'faculty':
+						if (!value) break
+						query.facultyId = parseInt(value)
+						break
 					default:
 						break
 				}
@@ -159,7 +164,10 @@ export default async function StudentListPage({
 		<div className="mx-16 flex flex-col justify-between">
 			{/* Tools bar Section - Start */}
 			<div className="flex flex-col items-center justify-around">
-				<TableSearch />
+				<div className="flex items-center justify-between">
+					<TableSearch />
+					<FilterBar data={relatedData} />
+				</div>
 				<div className="flex gap-2">
 					<FormModal
 						tableName="student"
