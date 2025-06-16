@@ -18,6 +18,12 @@ enum IdentificationType {
   PASSPORT
 }
 
+enum EnrollmentStatus {
+  ACTIVE
+  CANCLED
+  FINISHED
+}
+
 model Student {
   id          Int        @id @default(autoincrement())
   studentId   String     @unique
@@ -47,15 +53,17 @@ model Student {
   cmndId     Int? @unique
   passportId Int? @unique
 
-  cccd     Identification? @relation("CCCD", fields: [cccdId], references: [id])
-  cmnd     Identification? @relation("CMND", fields: [cmndId], references: [id])
-  passport Identification? @relation("PASSPORT", fields: [passportId], references: [id])
+  cccd       Identification? @relation("CCCD", fields: [cccdId], references: [id])
+  cmnd       Identification? @relation("CMND", fields: [cmndId], references: [id])
+  passport   Identification? @relation("PASSPORT", fields: [passportId], references: [id])
+  Enrollment Enrollment[]
 }
 
 model Faculty {
   id       Int       @id @default(autoincrement())
   name     String    @unique
   students Student[]
+  Course   Course[]
 }
 
 model Program {
@@ -95,4 +103,72 @@ model Identification {
   studentCCCD     Student?           @relation("CCCD")
   studentCMND     Student?           @relation("CMND")
   studentPASSPORT Student?           @relation("PASSPORT")
+}
+
+model Teacher {
+  id        Int     @id @default(autoincrement())
+  teacherId String  @unique
+  name      String
+  Class     Class[]
+}
+
+model Course {
+  id          Int     @id @default(autoincrement())
+  courseId    String  @unique
+  name        String
+  credits     Int
+  facultyId   Int
+  preCourseId Int?
+  description String
+  isDeactived Boolean @default(false)
+
+  createdAt DateTime @default(now())
+
+  preCourse Course? @relation("preCourse", fields: [preCourseId], references: [id])
+
+  faculty Faculty @relation(fields: [facultyId], references: [id])
+
+  Course Course[] @relation("preCourse")
+  Class  Class[]
+}
+
+model Class {
+  id      Int    @id @default(autoincrement())
+  classId String @unique
+
+  year     Int
+  semester Int
+
+  maxStudent Int
+  room       String
+  schedule   String
+
+  courseId  Int
+  teacherId Int
+
+  course     Course       @relation(fields: [courseId], references: [id])
+  teacher    Teacher      @relation(fields: [teacherId], references: [id])
+  Enrollment Enrollment[]
+}
+
+model Enrollment {
+  id Int @id @default(autoincrement())
+
+  studentId Int
+  classId   Int
+
+  status EnrollmentStatus
+
+  student Student @relation(fields: [studentId], references: [id])
+  class   Class   @relation(fields: [classId], references: [id])
+}
+
+model Result {
+  id Int @id @default(autoincrement())
+
+  studentId Int
+  courseId  Int
+
+  credits Int
+  grade   Float
 }
