@@ -80,8 +80,6 @@ export default async function FacultyListPage({
 		prisma.faculty.count(),
 	])
 
-	console.log(data)
-
 	return (
 		<div>
 			<div className="mx-16 flex flex-col justify-between">
