@@ -6,7 +6,8 @@ import InputField from '../InputField'
 import { toast } from 'react-toastify'
 import { useRouter } from 'next/navigation'
 import HiddenInputButton from '../HiddenInputButton'
-import IdentificationCard from '../ui/IdentificationCard'
+
+import { STUDENT_STATUS_UPDATE_RULE } from '@/lib/settings'
 
 export default function StudentForm({
 	type,
@@ -247,11 +248,19 @@ export default function StudentForm({
 									defaultValue={data?.statusId}
 								>
 									<option value="">Chọn trạng thái</option>
-									{relatedData?.studentStatuses.map((item: { id: number; name: string }, index: number) => (
-										<option key={item.id} value={item.id}>
-											{item.name}
-										</option>
-									))}
+									{relatedData?.studentStatuses.map((item: { id: number; name: string }, index: number) => {
+										const currentIndex = STUDENT_STATUS_UPDATE_RULE.indexOf(data?.status?.name || 'MAX')
+										console.log(STUDENT_STATUS_UPDATE_RULE.indexOf(item.name))
+										return (
+											<option
+												key={item.id}
+												value={item.id}
+												disabled={currentIndex >= STUDENT_STATUS_UPDATE_RULE.indexOf(item.name)}
+											>
+												{item.name}
+											</option>
+										)
+									})}
 								</select>
 								{state.errors?.status && <div className="text-[10px] text-red-500">{state.errors?.status}</div>}
 							</div>
