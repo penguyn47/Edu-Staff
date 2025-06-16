@@ -160,7 +160,7 @@ export default async function StudentListPage({
 			{/* Tools bar Section - Start */}
 			<div className="flex flex-col items-center justify-around">
 				<TableSearch />
-				<div>
+				<div className="flex gap-2">
 					<FormModal
 						tableName="student"
 						type="create"
@@ -168,6 +168,16 @@ export default async function StudentListPage({
 						children={
 							<div className="mt-2 rounded-sm border px-2 py-1 text-sm select-none hover:cursor-pointer hover:bg-gray-200">
 								Thêm
+							</div>
+						}
+					/>
+					<FormModal
+						tableName="export"
+						type="create"
+						relatedData={{ name: 'student' }}
+						children={
+							<div className="mt-2 rounded-sm border px-2 py-1 text-sm select-none hover:cursor-pointer hover:bg-gray-200">
+								Xuất
 							</div>
 						}
 					/>

@@ -1,4 +1,6 @@
 'use server'
+import { Workbook } from 'exceljs'
+
 import {
 	addressSchema,
 	facultySchema,
@@ -1304,4 +1306,216 @@ export const deleteStudentStatus = async (currentState: CurrentState, data: Form
 			error: false,
 		}
 	}
+}
+
+// ---------------------------------------------
+//              IMPORT / EXPORT
+// ---------------------------------------------
+export const exportFile = async (currentState: CurrentState, data: FormData) => {
+	const formData: any = Object.fromEntries(data)
+
+	const result: {
+		success: boolean
+		error: boolean
+		errors: any
+		data: any
+	} = {
+		success: false,
+		error: false,
+		errors: {},
+		data: formData,
+	}
+
+	if (formData.fileType != 'excel' && formData.fileType != 'json') {
+		result.errors = {
+			...result.errors,
+			fileType: 'Phải chọn định dạng file',
+		}
+		result.error = true
+
+		return result
+	}
+	if (formData.fileType === 'json') {
+		try {
+			const students = await prisma.student.findMany({
+				include: {
+					faculty: true,
+					program: true,
+					status: true,
+					permaAddress: true,
+					tempAddress: true,
+					cccd: true,
+					cmnd: true,
+					passport: true,
+				},
+			})
+			const jsonData = JSON.stringify(students, null, 2)
+
+			const base64Data = Buffer.from(jsonData).toString('base64')
+
+			result.success = true
+			result.data = {
+				...result.data,
+				fileContent: base64Data,
+				fileName: 'students.json',
+				fileType: 'application/json',
+			}
+		} catch (error) {
+			result.errors = {
+				...result.errors,
+				server: 'Lỗi khi lấy dữ liệu học sinh',
+			}
+			result.error = true
+		}
+		return result
+	}
+
+	if (formData.fileType === 'excel') {
+		try {
+			const students = await prisma.student.findMany({
+				include: {
+					faculty: true,
+					program: true,
+					status: true,
+					permaAddress: true,
+					tempAddress: true,
+					cccd: true,
+					cmnd: true,
+					passport: true,
+				},
+			})
+
+			// Tạo workbook và worksheet
+			const workbook = new Workbook()
+			const worksheet = workbook.addWorksheet('Students')
+
+			// Định nghĩa các cột
+			worksheet.columns = [
+				{ header: 'ID', key: 'id', width: 10 },
+				{ header: 'Mã SV', key: 'studentId', width: 15 },
+				{ header: 'Họ tên', key: 'name', width: 20 },
+				{ header: 'Ngày sinh', key: 'dob', width: 15 },
+				{ header: 'Giới tính', key: 'sex', width: 10 },
+				{ header: 'Khóa', key: 'cohort', width: 10 },
+				{ header: 'Số điện thoại', key: 'phone', width: 15 },
+				{ header: 'Email', key: 'email', width: 25 },
+				{ header: 'Mã bưu điện', key: 'zipCode', width: 10 },
+				{ header: 'Quốc tịch', key: 'nationality', width: 15 },
+				{ header: 'Khoa', key: 'faculty', width: 20 },
+				{ header: 'Chương trình', key: 'program', width: 20 },
+				{ header: 'Trạng thái', key: 'status', width: 15 },
+				// Địa chỉ thường trú
+				{ header: 'Số nhà (Thường trú)', key: 'permaAddress_houseNumber', width: 15 },
+				{ header: 'Đường (Thường trú)', key: 'permaAddress_street', width: 20 },
+				{ header: 'Phường (Thường trú)', key: 'permaAddress_ward', width: 15 },
+				{ header: 'Quận (Thường trú)', key: 'permaAddress_district', width: 15 },
+				{ header: 'Thành phố (Thường trú)', key: 'permaAddress_city', width: 15 },
+				{ header: 'Quốc gia (Thường trú)', key: 'permaAddress_country', width: 15 },
+				// Địa chỉ tạm trú
+				{ header: 'Số nhà (Tạm trú)', key: 'tempAddress_houseNumber', width: 15 },
+				{ header: 'Đường (Tạm trú)', key: 'tempAddress_street', width: 20 },
+				{ header: 'Phường (Tạm trú)', key: 'tempAddress_ward', width: 15 },
+				{ header: 'Quận (Tạm trú)', key: 'tempAddress_district', width: 15 },
+				{ header: 'Thành phố (Tạm trú)', key: 'tempAddress_city', width: 15 },
+				{ header: 'Quốc gia (Tạm trú)', key: 'tempAddress_country', width: 15 },
+				// CCCD
+				{ header: 'Số CCCD', key: 'cccd_number', width: 15 },
+				{ header: 'Ngày cấp CCCD', key: 'cccd_issueDate', width: 15 },
+				{ header: 'Nơi cấp CCCD', key: 'cccd_issuePlace', width: 15 },
+				{ header: 'Có chip CCCD', key: 'cccd_hasChip', width: 10 },
+				{ header: 'Quốc gia cấp CCCD', key: 'cccd_issuingCountry', width: 15 },
+				{ header: 'Ghi chú CCCD', key: 'cccd_notes', width: 20 },
+				// CMND
+				{ header: 'Số CMND', key: 'cmnd_number', width: 15 },
+				{ header: 'Ngày cấp CMND', key: 'cmnd_issueDate', width: 15 },
+				{ header: 'Nơi cấp CMND', key: 'cmnd_issuePlace', width: 15 },
+				{ header: 'Có chip CMND', key: 'cmnd_hasChip', width: 10 },
+				{ header: 'Quốc gia cấp CMND', key: 'cmnd_issuingCountry', width: 15 },
+				{ header: 'Ghi chú CMND', key: 'cmnd_notes', width: 20 },
+				// Hộ chiếu
+				{ header: 'Số Hộ chiếu', key: 'passport_number', width: 15 },
+				{ header: 'Ngày cấp Hộ chiếu', key: 'passport_issueDate', width: 15 },
+				{ header: 'Nơi cấp Hộ chiếu', key: 'passport_issuePlace', width: 15 },
+				{ header: 'Có chip Hộ chiếu', key: 'passport_hasChip', width: 10 },
+				{ header: 'Quốc gia cấp Hộ chiếu', key: 'passport_issuingCountry', width: 15 },
+				{ header: 'Ghi chú Hộ chiếu', key: 'passport_notes', width: 20 },
+			]
+
+			// Thêm dữ liệu
+			students.forEach((student) => {
+				worksheet.addRow({
+					id: student.id,
+					studentId: student.studentId,
+					name: student.name,
+					dob: student.dob ? student.dob.toISOString().split('T')[0] : '',
+					sex: student.sex,
+					cohort: student.cohort,
+					phone: student.phone || '',
+					email: student.email || '',
+					zipCode: student.zipCode,
+					nationality: student.nationality,
+					faculty: student.faculty?.name || '',
+					program: student.program?.name || '',
+					status: student.status?.name || '',
+					// Địa chỉ thường trú
+					permaAddress_houseNumber: student.permaAddress?.houseNumber || '',
+					permaAddress_street: student.permaAddress?.street || '',
+					permaAddress_ward: student.permaAddress?.ward || '',
+					permaAddress_district: student.permaAddress?.district || '',
+					permaAddress_city: student.permaAddress?.city || '',
+					permaAddress_country: student.permaAddress?.country || '',
+					// Địa chỉ tạm trú
+					tempAddress_houseNumber: student.tempAddress?.houseNumber || '',
+					tempAddress_street: student.tempAddress?.street || '',
+					tempAddress_ward: student.tempAddress?.ward || '',
+					tempAddress_district: student.tempAddress?.district || '',
+					tempAddress_city: student.tempAddress?.city || '',
+					tempAddress_country: student.tempAddress?.country || '',
+					// CCCD
+					cccd_number: student.cccd?.number || '',
+					cccd_issueDate: student.cccd?.issueDate ? student.cccd.issueDate.toISOString().split('T')[0] : '',
+					cccd_issuePlace: student.cccd?.issuePlace || '',
+					cccd_hasChip: student.cccd?.hasChip ? 'Có' : student.cccd?.hasChip === false ? 'Không' : '',
+					cccd_issuingCountry: student.cccd?.issuingCountry || '',
+					cccd_notes: student.cccd?.notes || '',
+					// CMND
+					cmnd_number: student.cmnd?.number || '',
+					cmnd_issueDate: student.cmnd?.issueDate ? student.cmnd.issueDate.toISOString().split('T')[0] : '',
+					cmnd_issuePlace: student.cmnd?.issuePlace || '',
+					cmnd_hasChip: student.cmnd?.hasChip ? 'Có' : student.cmnd?.hasChip === false ? 'Không' : '',
+					cmnd_issuingCountry: student.cmnd?.issuingCountry || '',
+					cmnd_notes: student.cmnd?.notes || '',
+					// Hộ chiếu
+					passport_number: student.passport?.number || '',
+					passport_issueDate: student.passport?.issueDate ? student.passport.issueDate.toISOString().split('T')[0] : '',
+					passport_issuePlace: student.passport?.issuePlace || '',
+					passport_hasChip: student.passport?.hasChip ? 'Có' : student.passport?.hasChip === false ? 'Không' : '',
+					passport_issuingCountry: student.passport?.issuingCountry || '',
+					passport_notes: student.passport?.notes || '',
+				})
+			})
+
+			// Tạo buffer và encode thành base64
+			const buffer = await workbook.xlsx.writeBuffer()
+			const base64Data = Buffer.from(buffer).toString('base64')
+
+			result.success = true
+			result.data = {
+				...result.data,
+				fileContent: base64Data,
+				fileName: 'students.xlsx',
+				fileType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+			}
+			return result
+		} catch (error) {
+			result.errors = {
+				...result.errors,
+				server: 'Lỗi khi xử lý file Excel',
+			}
+			result.error = true
+			return result
+		}
+	}
+
+	return result
 }

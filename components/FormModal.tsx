@@ -8,12 +8,14 @@ import StudentForm from './forms/StudentForm'
 import FacultyForm from './forms/FacultyForm'
 import ProgramForm from './forms/ProgramForm'
 import StudentStatusForm from './forms/StudentStatusForm'
+import ExportForm from './forms/ExportForm'
 
 const deleteActionMap = {
 	student: deleteStudent,
 	faculty: deleteFaculty,
 	program: deleteProgram,
 	studentstatus: deleteStudentStatus,
+	export: deleteProgram,
 }
 
 const forms: {
@@ -36,6 +38,9 @@ const forms: {
 	studentstatus: (setOpen, type, data, relatedData) => (
 		<StudentStatusForm setOpen={setOpen} type={type} data={data} relatedData={relatedData} />
 	),
+	export: (setOpen, type, data, relatedData) => (
+		<ExportForm setOpen={setOpen} type={type} data={data} relatedData={relatedData} />
+	),
 }
 
 export default function FormModal({
@@ -46,8 +51,8 @@ export default function FormModal({
 	children,
 	relatedData,
 }: {
-	type: 'create' | 'update' | 'delete'
-	tableName: 'student' | 'faculty' | 'program' | 'studentstatus'
+	type: 'create' | 'update' | 'delete' | 'import' | 'export'
+	tableName: 'student' | 'faculty' | 'program' | 'studentstatus' | 'export'
 	data?: any
 	id?: number
 	children: ReactNode
