@@ -1,7 +1,8 @@
-import { exportFile } from '@/lib/actions'
+import { exportFile, importFile } from '@/lib/actions'
 import { useRouter } from 'next/navigation'
 import { Dispatch, SetStateAction, useActionState, useEffect } from 'react'
 import { toast } from 'react-toastify'
+import InputField from '../InputField'
 
 export default function ExportForm({
 	type,
@@ -14,7 +15,7 @@ export default function ExportForm({
 	setOpen: Dispatch<SetStateAction<boolean>>
 	relatedData?: any
 }) {
-	const [state, formAction] = useActionState(type === 'create' ? exportFile : exportFile, {
+	const [state, formAction] = useActionState(type === 'create' ? exportFile : importFile, {
 		success: false,
 		error: false,
 		errors: null,
@@ -57,7 +58,8 @@ export default function ExportForm({
 
 		if (state.error) {
 			toast.error('Something went wrong!')
-			console.log(state.errors)
+			setOpen(false)
+			router.refresh()
 		}
 	}, [state, type, setOpen, router])
 
@@ -67,22 +69,36 @@ export default function ExportForm({
 				<h1 className="mx-4 text-xl font-semibold">
 					{type === 'create' ? `Xuất danh sách ${relatedData.name}` : `Nhập danh sách ${relatedData.name}`}
 				</h1>
-				<div className="mx-4 grid grid-cols-3 gap-2 gap-x-4">
-					<div className={'flex w-full flex-col gap-2'}>
-						<input type="text" defaultValue={relatedData.name} className="hidden" name="tableName" />
+				<div className="mx-4 grid grid-cols-2 gap-2 gap-x-4">
+					{type === 'create' && (
+						<div className={'flex w-full flex-col gap-2'}>
+							<input type="text" defaultValue={relatedData.name} className="hidden" name="tableName" />
 
-						<label className="text-xs text-gray-500">Kiểu tệp</label>
-						<select
-							name="fileType"
-							className="w-full rounded-md p-2 text-sm ring-[1.5px] ring-gray-300"
-							defaultValue={data?.fileType}
-						>
-							<option value="">Chọn kiểu tệp</option>
-							<option value="excel">Excel</option>
-							<option value="json">Json</option>
-						</select>
-						{state.errors?.fileType && <div className="text-[10px] text-red-500">{state.errors?.fileType}</div>}
-					</div>
+							<label className="text-xs text-gray-500">Kiểu tệp</label>
+							<select
+								name="fileType"
+								className="w-full rounded-md p-2 text-sm ring-[1.5px] ring-gray-300"
+								defaultValue={data?.fileType}
+							>
+								<option value="">Chọn kiểu tệp</option>
+								<option value="excel">Excel</option>
+								<option value="json">Json</option>
+							</select>
+							{state.errors?.fileType && <div className="text-[10px] text-red-500">{state.errors?.fileType}</div>}
+						</div>
+					)}
+					{type === 'update' && (
+						<div className="flex w-full flex-col">
+							<label className="mb-2 text-xs text-gray-500">File: (hỗ trợ: json, xlxs)</label>
+							<input
+								type="file"
+								name="file"
+								accept=".xlsx,.json"
+								className="w-full rounded-md p-2 text-sm ring-[1.5px] ring-gray-300 read-only:bg-gray-200 hover:cursor-pointer"
+							/>
+							{state.errors?.file && <div className="mt-2 text-[10px] text-red-500">{state.errors?.file}</div>}
+						</div>
+					)}
 				</div>
 
 				<button type="submit" className="rounded-md bg-gray-700 p-2 text-white hover:cursor-pointer">

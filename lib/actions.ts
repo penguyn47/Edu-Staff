@@ -1,5 +1,6 @@
 'use server'
 import { Workbook } from 'exceljs'
+import * as XLSX from 'xlsx'
 
 import {
 	addressSchema,
@@ -1514,6 +1515,362 @@ export const exportFile = async (currentState: CurrentState, data: FormData) => 
 			}
 			result.error = true
 			return result
+		}
+	}
+
+	return result
+}
+
+const handleImportedData = async (data: any) => {
+	const errorList = []
+	for (const student of data) {
+		try {
+			const studentIfExisted = await prisma.student.findUnique({
+				where: {
+					studentId: student.studentId,
+				},
+			})
+
+			if (studentIfExisted) throw new Error('Student is existed with studenId')
+
+			if (student.permaAddress) {
+				const addr = await prisma.address.create({
+					data: {
+						houseNumber: student.permaAddress.houseNumber,
+						street: student.permaAddress.street,
+						ward: student.permaAddress.ward,
+						district: student.permaAddress.district,
+						city: student.permaAddress.city,
+						country: student.permaAddress.country,
+					},
+				})
+				student.permaAddress.id = addr.id
+			}
+			if (student.tempAddress) {
+				const addr = await prisma.address.create({
+					data: {
+						houseNumber: student.tempAddress.houseNumber,
+						street: student.tempAddress.street,
+						ward: student.tempAddress.ward,
+						district: student.tempAddress.district,
+						city: student.tempAddress.city,
+						country: student.tempAddress.country,
+					},
+				})
+				student.tempAddress.id = addr.id
+			}
+			if (student.cccd) {
+				const identification = await prisma.identification.create({
+					data: {
+						type: 'CCCD',
+						number: student.cccd.number,
+						issueDate: student.cccd.issueDate,
+						expiryDate: student.cccd.expiryDate,
+						issuePlace: student.cccd.issuePlace,
+						hasChip: student.cccd.hasChip,
+						issuingCountry: student.cccd.issuingCountry,
+						notes: student.cccd.notes,
+					},
+				})
+				student.cccd.id = identification.id
+			}
+			if (student.cmnd) {
+				const identification = await prisma.identification.create({
+					data: {
+						type: 'CMND',
+						number: student.cmnd.number,
+						issueDate: student.cmnd.issueDate,
+						expiryDate: student.cmnd.expiryDate,
+						issuePlace: student.cmnd.issuePlace,
+						hasChip: student.cmnd.hasChip,
+						issuingCountry: student.cmnd.issuingCountry,
+						notes: student.cmnd.notes,
+					},
+				})
+				student.cmnd.id = identification.id
+			}
+			if (student.passport) {
+				const identification = await prisma.identification.create({
+					data: {
+						type: 'PASSPORT',
+						number: student.passport.number,
+						issueDate: student.passport.issueDate,
+						expiryDate: student.passport.expiryDate,
+						issuePlace: student.passport.issuePlace,
+						hasChip: student.passport.hasChip,
+						issuingCountry: student.passport.issuingCountry,
+						notes: student.passport.notes,
+					},
+				})
+				student.passport.id = identification.id
+			}
+			const faculty = await prisma.faculty.findUnique({
+				where: {
+					name: student?.faculty?.name,
+				},
+			})
+			if (faculty) {
+				student.faculty.id = faculty.id
+			} else {
+				const newRecord = await prisma.faculty.create({
+					data: { name: student?.faculty?.name },
+				})
+				student.faculty.id = newRecord.id
+			}
+			const program = await prisma.program.findUnique({
+				where: {
+					name: student?.program?.name,
+				},
+			})
+			if (program) {
+				student.program.id = program.id
+			} else {
+				const newRecord = await prisma.program.create({
+					data: { name: student?.program?.name },
+				})
+				student.program.id = newRecord.id
+			}
+			const status = await prisma.studentStatus.findUnique({
+				where: {
+					name: student?.status?.name,
+				},
+			})
+			if (status) {
+				student.status.id = status.id
+			} else {
+				const newRecord = await prisma.studentStatus.create({
+					data: { name: student?.status?.name },
+				})
+				student.status.id = newRecord.id
+			}
+
+			await prisma.student.create({
+				data: {
+					studentId: student.studentId,
+					name: student.name,
+					dob: new Date(student.dob),
+					sex: student.sex,
+					cohort: student.cohort,
+					phone: student.phone,
+					email: student.email,
+					zipCode: student.zipCode,
+					nationality: student.nationality,
+					statusId: student.status.id,
+					programId: student.program.id,
+					facultyId: student.faculty.id,
+					cccdId: student.cccd?.id,
+					cmndId: student.cmnd?.id,
+					passportId: student.passport?.id,
+				},
+			})
+		} catch (err: any) {
+			errorList.push(`[ERROR]: Student with ID: ${student.studentId} fullerr: ${err}`)
+		}
+	}
+
+	if (errorList.length) {
+		const jsonData = JSON.stringify(errorList, null, 2)
+		const base64Data = Buffer.from(jsonData).toString('base64')
+		return base64Data
+	}
+	return ''
+}
+
+export const importFile = async (currentState: CurrentState, data: FormData) => {
+	const formData: any = Object.fromEntries(data)
+
+	const result: {
+		success: boolean
+		error: boolean
+		errors: any
+		data: any
+	} = {
+		success: false,
+		error: false,
+		errors: {},
+		data: formData,
+	}
+
+	if (formData.file?.size) {
+		const file: File = formData.file
+		const fileName = file.name.toLowerCase()
+
+		if (fileName.endsWith('.json') || fileName.endsWith('.xlsx')) {
+			try {
+				if (fileName.endsWith('.json')) {
+					const fileContent = await file.text()
+					const students = JSON.parse(fileContent)
+
+					if (Array.isArray(students)) {
+						result.success = true
+						result.data = { ...formData }
+						const base64Data = await handleImportedData(students)
+						if (base64Data) {
+							result.success = true
+							result.error = true
+							result.data = {
+								...result.data,
+								fileContent: base64Data,
+								fileName: 'error-log.json',
+								fileType: 'application/json',
+							}
+							return result
+						}
+					} else {
+						result.error = true
+						result.errors = {
+							file: 'Nội dung file JSON không phải là mảng hợp lệ.',
+						}
+					}
+				} else if (fileName.endsWith('.xlsx')) {
+					// Read the Excel file
+					const arrayBuffer = await file.arrayBuffer()
+					const workbook = XLSX.read(arrayBuffer, { type: 'array' })
+					const worksheet = workbook.Sheets[workbook.SheetNames[0]]
+					const rawData = XLSX.utils.sheet_to_json(worksheet, { header: 1 })
+
+					// Define column headers based on the provided Excel structure
+					const headers = rawData[0] as string[]
+					const rows = rawData.slice(1) // Skip header row
+
+					// Map Excel rows to student objects
+					const students = rows
+						.filter((row: any) => row.length > 0) // Skip empty rows
+						.map((row: any) => {
+							const rowData: { [key: string]: any } = {}
+							headers.forEach((header, index) => {
+								rowData[header] = row[index] || null
+							})
+
+							return {
+								id: rowData['ID'] ? parseInt(rowData['ID']) : null,
+								studentId: rowData['Mã SV'] || null,
+								name: rowData['Họ tên'] || null,
+								dob: rowData['Ngày sinh'] ? new Date(rowData['Ngày sinh']).toISOString() : null,
+								sex: rowData['Giới tính'] || null,
+								cohort: rowData['Khóa'] ? parseInt(rowData['Khóa']) : null,
+								phone: rowData['Số điện thoại'] || null,
+								email: rowData['Email'] || null,
+								zipCode: rowData['Mã bưu điện'] ? parseInt(rowData['Mã bưu điện']) : null,
+								nationality: rowData['Quốc tịch'] || null,
+								faculty: {
+									id: null, // Excel doesn't provide faculty ID, set to null
+									name: rowData['Khoa'] || null,
+								},
+								program: {
+									id: null, // Excel doesn't provide program ID, set to null
+									name: rowData['Chương trình'] || null,
+								},
+								status: {
+									id: null, // Excel doesn't provide status ID, set to null
+									name: rowData['Trạng thái'] || null,
+								},
+								permaAddress: rowData['Số nhà (Thường trú)']
+									? {
+											id: null, // Excel doesn't provide address ID
+											houseNumber: rowData['Số nhà (Thường trú)'] || null,
+											street: rowData['Đường (Thường trú)'] || null,
+											ward: rowData['Phường (Thường trú)'] || null,
+											district: rowData['Quận (Thường trú)'] || null,
+											city: rowData['Thành phố (Thường trú)'] || null,
+											country: rowData['Quốc gia (Thường trú)'] || null,
+										}
+									: null,
+								tempAddress: rowData['Số nhà (Tạm trú)']
+									? {
+											id: null, // Excel doesn't provide address ID
+											houseNumber: rowData['Số nhà (Tạm trú)'] || null,
+											street: rowData['Đường (Tạm trú)'] || null,
+											ward: rowData['Phường (Tạm trú)'] || null,
+											district: rowData['Quận (Tạm trú)'] || null,
+											city: rowData['Thành phố (Tạm trú)'] || null,
+											country: rowData['Quốc gia (Tạm trú)'] || null,
+										}
+									: null,
+								cccd: rowData['Số CCCD']
+									? {
+											id: null, // Excel doesn't provide CCCD ID
+											type: 'CCCD',
+											number: rowData['Số CCCD'] || null,
+											issueDate: rowData['Ngày cấp CCCD'] ? new Date(rowData['Ngày cấp CCCD']).toISOString() : null,
+											expiryDate: null, // Excel doesn't provide expiry date
+											issuePlace: rowData['Nơi cấp CCCD'] || null,
+											hasChip:
+												rowData['Có chip CCCD'] === 'Có' ? true : rowData['Có chip CCCD'] === 'Không' ? false : null,
+											issuingCountry: rowData['Quốc gia cấp CCCD'] || null,
+											notes: rowData['Ghi chú CCCD'] || null,
+										}
+									: null,
+								cmnd: rowData['Số CMND']
+									? {
+											id: null, // Excel doesn't provide CMND ID
+											type: 'CMND',
+											number: rowData['Số CMND'] || null,
+											issueDate: rowData['Ngày cấp CMND'] ? new Date(rowData['Ngày cấp CMND']).toISOString() : null,
+											expiryDate: null, // Excel doesn't provide expiry date
+											issuePlace: rowData['Nơi cấp CMND'] || null,
+											hasChip:
+												rowData['Có chip CMND'] === 'Có' ? true : rowData['Có chip CMND'] === 'Không' ? false : null,
+											issuingCountry: rowData['Quốc gia cấp CMND'] || null,
+											notes: rowData['Ghi chú CMND'] || null,
+										}
+									: null,
+								passport: rowData['Số Hộ chiếu']
+									? {
+											id: null, // Excel doesn't provide passport ID
+											type: 'PASSPORT',
+											number: rowData['Số Hộ chiếu'] || null,
+											issueDate: rowData['Ngày cấp Hộ chiếu']
+												? new Date(rowData['Ngày cấp Hộ chiếu']).toISOString()
+												: null,
+											expiryDate: null, // Excel doesn't provide expiry date
+											issuePlace: rowData['Nơi cấp Hộ chiếu'] || null,
+											hasChip:
+												rowData['Có chip Hộ chiếu'] === 'Có'
+													? true
+													: rowData['Có chip Hộ chiếu'] === 'Không'
+														? false
+														: null,
+											issuingCountry: rowData['Quốc gia cấp Hộ chiếu'] || null,
+											notes: rowData['Ghi chú Họ chiếu'] || null,
+										}
+									: null,
+							}
+						})
+
+					if (students.length > 0) {
+						result.success = true
+						result.data = { ...formData }
+						const base64Data = await handleImportedData(students)
+						if (base64Data) {
+							result.success = true
+							result.error = true
+							result.data = {
+								...result.data,
+								fileContent: base64Data,
+								fileName: 'error-log.json',
+								fileType: 'application/json',
+							}
+							return result
+						}
+					} else {
+						result.error = true
+						result.errors = {
+							file: 'File Excel không chứa dữ liệu hợp lệ.',
+						}
+					}
+				}
+			} catch (error: any) {
+				result.error = true
+				result.errors = {
+					file: `Lỗi khi đọc file: ${error.message}`,
+				}
+			}
+		}
+	} else {
+		result.error = true
+		result.errors = {
+			file: 'Bạn chưa chọn file.',
 		}
 	}
 

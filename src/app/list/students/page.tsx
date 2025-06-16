@@ -181,6 +181,16 @@ export default async function StudentListPage({
 							</div>
 						}
 					/>
+					<FormModal
+						tableName="export"
+						type="update"
+						relatedData={{ name: 'student' }}
+						children={
+							<div className="mt-2 rounded-sm border px-2 py-1 text-sm select-none hover:cursor-pointer hover:bg-gray-200">
+								Nhập
+							</div>
+						}
+					/>
 				</div>
 			</div>
 			{/* Tools bar Section - End */}
