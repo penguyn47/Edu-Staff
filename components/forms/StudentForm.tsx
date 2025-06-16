@@ -245,17 +245,16 @@ export default function StudentForm({
 								<select
 									name="statusId"
 									className="w-full rounded-md p-2 text-sm ring-[1.5px] ring-gray-300"
-									defaultValue={data?.statusId}
+									defaultValue={parseInt(data?.status?.id) || data?.statusId}
 								>
 									<option value="">Chọn trạng thái</option>
 									{relatedData?.studentStatuses.map((item: { id: number; name: string }, index: number) => {
 										const currentIndex = STUDENT_STATUS_UPDATE_RULE.indexOf(data?.status?.name || 'MAX')
-										console.log(STUDENT_STATUS_UPDATE_RULE.indexOf(item.name))
 										return (
 											<option
 												key={item.id}
 												value={item.id}
-												disabled={currentIndex >= STUDENT_STATUS_UPDATE_RULE.indexOf(item.name)}
+												disabled={currentIndex > STUDENT_STATUS_UPDATE_RULE.indexOf(item.name)}
 											>
 												{item.name}
 											</option>
