@@ -266,11 +266,11 @@ export default function StudentForm({
 						</div>
 						<div className="mx-4 mt-4 font-semibold">4. Giấy tờ chứng thân</div>
 						<div className="col-span-3 mx-4">
-							<input type="text" defaultValue={state.data?.cmnd?.id} name="cmndId" hidden />
+							<input type="text" defaultValue={state.data?.cmndId} name="cmndId" hidden />
 							<HiddenInputButton
 								toggleLabel="includecmnd"
 								title="Chứng minh nhân dân"
-								isToggleable={!state.data?.cmndId}
+								isToggleable={!state.data?.cmndId && !state.data?.cmnd}
 								children={
 									<div className="grid w-full grid-cols-3 gap-x-2">
 										<InputField
@@ -318,7 +318,7 @@ export default function StudentForm({
 								isToggleable={!state.data?.cccdId}
 								children={
 									<div className="grid w-full grid-cols-3 gap-x-2">
-										<input type="text" defaultValue={state.data?.cccd?.id} name="cccdId" hidden />
+										<input type="text" defaultValue={state.data?.cccdId} name="cccdId" hidden />
 										<InputField
 											label="Số CCCD"
 											name={'cccdNumber'}
@@ -371,7 +371,7 @@ export default function StudentForm({
 								isToggleable={!state.data?.passportId}
 								children={
 									<div className="grid w-full grid-cols-3 gap-x-2">
-										<input type="text" defaultValue={state.data?.passport?.id} name="passportId" hidden />
+										<input type="text" defaultValue={state.data?.passportId} name="passportId" hidden />
 										<InputField
 											label="Số Hộ chiếu"
 											name={'passportNumber'}
