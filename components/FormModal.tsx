@@ -1,7 +1,14 @@
 'use client'
 
 import { Dispatch, ReactNode, SetStateAction, useActionState, useEffect, useState } from 'react'
-import { deleteStudent, deleteFaculty, deleteProgram, deleteStudentStatus, deleteTeacher } from '@/lib/actions'
+import {
+	deleteStudent,
+	deleteFaculty,
+	deleteProgram,
+	deleteStudentStatus,
+	deleteTeacher,
+	deleteCourse,
+} from '@/lib/actions'
 import { toast } from 'react-toastify'
 import { useRouter } from 'next/navigation'
 import StudentForm from './forms/StudentForm'
@@ -10,6 +17,7 @@ import ProgramForm from './forms/ProgramForm'
 import StudentStatusForm from './forms/StudentStatusForm'
 import ExportForm from './forms/ExportForm'
 import TeacherForm from './forms/TeacherForm'
+import CourseForm from './forms/CourseForm'
 
 const deleteActionMap = {
 	student: deleteStudent,
@@ -18,6 +26,7 @@ const deleteActionMap = {
 	studentstatus: deleteStudentStatus,
 	export: deleteProgram,
 	teacher: deleteTeacher,
+	course: deleteCourse,
 }
 
 const forms: {
@@ -46,6 +55,9 @@ const forms: {
 	teacher: (setOpen, type, data, relatedData) => (
 		<TeacherForm setOpen={setOpen} type={type} data={data} relatedData={relatedData} />
 	),
+	course: (setOpen, type, data, relatedData) => (
+		<CourseForm setOpen={setOpen} type={type} data={data} relatedData={relatedData} />
+	),
 }
 
 export default function FormModal({
@@ -57,7 +69,7 @@ export default function FormModal({
 	relatedData,
 }: {
 	type: 'create' | 'update' | 'delete' | 'import' | 'export'
-	tableName: 'student' | 'faculty' | 'program' | 'studentstatus' | 'export' | 'teacher'
+	tableName: 'student' | 'faculty' | 'program' | 'studentstatus' | 'export' | 'teacher' | 'course'
 	data?: any
 	id?: number
 	children: ReactNode
@@ -76,6 +88,11 @@ export default function FormModal({
 		useEffect(() => {
 			if (state.success) {
 				toast(`${tableName} has been deleted!`)
+				setOpen(false)
+				router.refresh()
+			}
+			if (state.error) {
+				toast.error('Something went wrong!')
 				setOpen(false)
 				router.refresh()
 			}

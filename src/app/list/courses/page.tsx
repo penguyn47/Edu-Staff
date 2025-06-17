@@ -49,54 +49,64 @@ const columns = [
 	},
 ]
 
-const renderRow = (item: Course & { preCourse: { name: string } } & { faculty: { name: string } }) => (
-	<tr key={item.id}>
-		<td className="flex items-center justify-center pt-3">
-			{item.isDeactived ? (
-				<div className="h-3 w-3 rounded-full bg-red-500"></div>
-			) : (
-				<div className="h-3 w-3 rounded-full bg-green-500"></div>
-			)}
-		</td>
-		<td className="px-2 py-1">{item.courseId}</td>
-		<td className="px-2 py-1">{item.name}</td>
-		<td className="px-2 py-1">{item.credits}</td>
-		<td className="px-2 py-1">{item.faculty.name}</td>
-		<td className="px-2 py-1">{item.preCourse ? item.preCourse.name : 'Không có'}</td>
-		<td className="px-2 py-1">{item.description}</td>
-		<td className="px-2 py-1">
-			<div className="flex justify-end gap-2">
-				<FormModal
-					tableName="teacher"
-					type="delete"
-					id={item.id}
-					children={
-						<div className="rounded-sm bg-gray-200 px-1 py-1 text-center text-sm hover:cursor-pointer hover:bg-gray-300">
-							Xóa
-						</div>
-					}
-				/>
-
-				<FormModal
-					tableName="teacher"
-					type="update"
-					data={item}
-					children={
-						<div className="rounded-sm bg-gray-200 px-1 py-1 text-center text-sm hover:cursor-pointer hover:bg-gray-300">
-							Sửa
-						</div>
-					}
-				/>
-			</div>
-		</td>
-	</tr>
-)
-
 export default async function CourseListPage({
 	searchParams,
 }: {
 	searchParams: { [key: string]: undefined | string }
 }) {
+	const [faculties, courses] = await prisma.$transaction([prisma.faculty.findMany(), prisma.course.findMany()])
+
+	const relatedData = {
+		faculties: faculties,
+		programs: courses,
+	}
+
+	const renderRow = (
+		item: Course & { preCourse: { courseId: string; name: string } } & { faculty: { name: string } },
+	) => (
+		<tr key={item.id}>
+			<td className="flex items-center justify-center pt-3">
+				{item.isDeactived ? (
+					<div className="h-3 w-3 rounded-full bg-red-500"></div>
+				) : (
+					<div className="h-3 w-3 rounded-full bg-green-500"></div>
+				)}
+			</td>
+			<td className="px-2 py-1">{item.courseId}</td>
+			<td className="px-2 py-1">{item.name}</td>
+			<td className="px-2 py-1">{item.credits}</td>
+			<td className="px-2 py-1">{item.faculty.name}</td>
+			<td className="px-2 py-1">{item.preCourse ? item.preCourse.name : 'Không có'}</td>
+			<td className="px-2 py-1">{item.description}</td>
+			<td className="px-2 py-1">
+				<div className="flex justify-end gap-2">
+					<FormModal
+						tableName="course"
+						type="delete"
+						id={item.id}
+						children={
+							<div className="rounded-sm bg-gray-200 px-1 py-1 text-center text-sm hover:cursor-pointer hover:bg-gray-300">
+								Xóa
+							</div>
+						}
+					/>
+
+					<FormModal
+						tableName="course"
+						type="update"
+						data={item}
+						relatedData={relatedData}
+						children={
+							<div className="rounded-sm bg-gray-200 px-1 py-1 text-center text-sm hover:cursor-pointer hover:bg-gray-300">
+								Sửa
+							</div>
+						}
+					/>
+				</div>
+			</td>
+		</tr>
+	)
+
 	const { page, ...queryParams } = await searchParams
 
 	const p = page ? parseInt(page) : 1
@@ -122,7 +132,8 @@ export default async function CourseListPage({
 
 					<div>
 						<FormModal
-							tableName="teacher"
+							tableName="course"
+							relatedData={relatedData}
 							type="create"
 							children={
 								<div className="mt-2 rounded-sm border px-2 py-1 text-sm select-none hover:cursor-pointer hover:bg-gray-200">

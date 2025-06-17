@@ -4,6 +4,8 @@ import * as XLSX from 'xlsx'
 
 import {
 	addressSchema,
+	courseSchema,
+	CourseSchema,
 	facultySchema,
 	FacultySchema,
 	identificationSchema,
@@ -2031,6 +2033,273 @@ export const deleteTeacher = async (currentState: CurrentState, data: FormData) 
 		}
 	} catch (err: any) {
 		logger.error(`[server-actions]: (Delete-Teacher): Error. (ERROR-END). [${err.message}]`)
+		return {
+			success: true,
+			error: false,
+		}
+	}
+}
+
+// ---------------------------------------------
+//              COURSE
+// ---------------------------------------------
+export const createCourse = async (currenState: CurrentState, formData: FormData) => {
+	logger.debug(
+		`[server-actions]: (Create-Course): Received form data. (DEBUG-END). [${JSON.stringify(Object.fromEntries(formData))}]`,
+	)
+	const courseFormData: CourseSchema | any = Object.fromEntries(formData)
+	const validatedCourseFormData = courseSchema.safeParse(courseFormData)
+	try {
+		if (!validatedCourseFormData.success) {
+			const formFieldErrors = validatedCourseFormData.error.flatten().fieldErrors
+			logger.error(
+				`[server-actions]: (Create-Course): Validation failed. (ERROR-END). [${JSON.stringify(formFieldErrors)}]`,
+			)
+			return {
+				success: false,
+				error: true,
+				errors: {
+					courseId: formFieldErrors?.courseId?.[0],
+					credits: formFieldErrors?.credits?.[0],
+					name: formFieldErrors?.name?.[0],
+					description: formFieldErrors?.description?.[0],
+				},
+				data: courseFormData,
+			}
+		}
+
+		const faculty = await prisma.faculty.findUnique({ where: { id: parseInt(courseFormData.facultyId) } })
+
+		if (!faculty) {
+			return {
+				success: false,
+				error: true,
+				errors: {
+					facultyId: 'Khoa không tồn tại',
+				},
+				data: courseFormData,
+			}
+		}
+
+		const preCourse = await prisma.course.findUnique({ where: { courseId: courseFormData.preCourseId } })
+
+		if (courseFormData.preCourseId && !preCourse) {
+			return {
+				success: false,
+				error: true,
+				errors: {
+					preCourseId: 'Môn tiên quyết không tồn tại',
+				},
+				data: courseFormData,
+			}
+		}
+
+		const refinedData = {
+			...validatedCourseFormData.data,
+			preCourseId: preCourse?.id,
+			facultyId: faculty?.id,
+		}
+
+		await prisma.course.create({
+			data: refinedData,
+		})
+
+		logger.info(`[server-actions]: (Create-Course): Course created successfully. (INFO-END). [${courseFormData.name}]`)
+		return {
+			success: true,
+			error: false,
+			errors: null,
+			data: null,
+		}
+	} catch (err: any) {
+		if (err.code == 'P2002') {
+			const field = err.meta?.target?.[0] || 'unknown'
+			logger.error(`[server-actions]: (Create-Course): Duplicate entry. (ERROR-END). [${field}: ${err.message}]`)
+			return {
+				success: false,
+				error: true,
+				errors: {
+					[field]: 'Đã tồn tại',
+				},
+				data: courseFormData,
+			}
+		}
+		logger.error(`[server-actions]: (Create-Course): Error. (ERROR-END). [${err.message}]`)
+		return {
+			success: false,
+			error: true,
+			errors: null,
+			data: courseFormData,
+		}
+	}
+}
+
+export const updateCourse = async (currenState: CurrentState, formData: FormData) => {
+	logger.debug(
+		`[server-actions]: (Update-Course): Received form data. (DEBUG-END). [${JSON.stringify(Object.fromEntries(formData))}]`,
+	)
+	const courseFormData: CourseSchema | any = Object.fromEntries(formData)
+	const validatedCourseFormData = courseSchema.safeParse(courseFormData)
+	try {
+		if (!validatedCourseFormData.success) {
+			const formFieldErrors = validatedCourseFormData.error.flatten().fieldErrors
+			logger.error(
+				`[server-actions]: (Update-Course): Validation failed. (ERROR-END). [${JSON.stringify(formFieldErrors)}]`,
+			)
+			return {
+				success: false,
+				error: true,
+				errors: {
+					courseId: formFieldErrors?.courseId?.[0],
+					credits: formFieldErrors?.credits?.[0],
+					name: formFieldErrors?.name?.[0],
+					description: formFieldErrors?.description?.[0],
+				},
+				data: courseFormData,
+			}
+		}
+
+		const faculty = await prisma.faculty.findUnique({ where: { id: parseInt(courseFormData.facultyId) } })
+		const preCourse = await prisma.course.findUnique({ where: { courseId: courseFormData.preCourseId } })
+
+		if (!faculty) {
+			return {
+				success: false,
+				error: true,
+				errors: {
+					facultyId: 'Khoa không tồn tại',
+				},
+				data: courseFormData,
+			}
+		}
+
+		if (courseFormData.preCourseId && !preCourse) {
+			return {
+				success: false,
+				error: true,
+				errors: {
+					preCourseId: 'Môn tiên quyết không tồn tại',
+				},
+				data: courseFormData,
+			}
+		}
+
+		const refinedData = {
+			...validatedCourseFormData.data,
+			preCourseId: preCourse?.id || null,
+			facultyId: faculty?.id,
+		}
+
+		await prisma.course.update({
+			where: {
+				id: parseInt(courseFormData.id),
+			},
+			data: refinedData,
+		})
+
+		logger.info(`[server-actions]: (Update-Course): Course created successfully. (INFO-END). [${courseFormData.name}]`)
+		return {
+			success: true,
+			error: false,
+			errors: null,
+			data: null,
+		}
+	} catch (err: any) {
+		if (err.code == 'P2002') {
+			const field = err.meta?.target?.[0] || 'unknown'
+			logger.error(`[server-actions]: (Update-Course): Duplicate entry. (ERROR-END). [${field}: ${err.message}]`)
+			return {
+				success: false,
+				error: true,
+				errors: {
+					[field]: 'Đã tồn tại',
+				},
+				data: courseFormData,
+			}
+		}
+		logger.error(`[server-actions]: (Update-Course): Error. (ERROR-END). [${err.message}]`)
+		return {
+			success: false,
+			error: true,
+			errors: null,
+			data: courseFormData,
+		}
+	}
+}
+
+export const deleteCourse = async (currentState: CurrentState, data: FormData) => {
+	logger.debug(`[server-actions]: (Delete-Course): Received form data. (DEBUG-END). [${data.get('id')}]`)
+	try {
+		const id = data.get('id') as string
+
+		const course = await prisma.course.findUnique({
+			where: {
+				id: parseInt(id),
+			},
+		})
+
+		if (!course) {
+			return {
+				success: false,
+				error: true,
+			}
+		}
+
+		if (course.isDeactived) {
+			return {
+				success: false,
+				error: true,
+			}
+		}
+
+		const time_now = new Date()
+		const time_created = new Date(course.createdAt)
+
+		const time_diff = time_now.getTime() - time_created.getTime()
+		const minutes_diff = time_diff / (1000 * 60)
+
+		if (minutes_diff > 30) {
+			return {
+				success: false,
+				error: true,
+			}
+		}
+
+		const classes = await prisma.class.findMany({
+			where: {
+				courseId: course.id,
+			},
+		})
+
+		if (classes.length > 0) {
+			await prisma.course.update({
+				where: {
+					id: course.id,
+				},
+				data: {
+					...course,
+					isDeactived: true,
+				},
+			})
+			return {
+				success: false,
+				error: true,
+			}
+		}
+
+		await prisma.course.delete({
+			where: {
+				id: parseInt(id),
+			},
+		})
+
+		logger.info(`[server-actions]: (Delete-Course): Course deleted successfully. (INFO-END). [${id}]`)
+		return {
+			success: true,
+			error: false,
+		}
+	} catch (err: any) {
+		logger.error(`[server-actions]: (Delete-Course): Error. (ERROR-END). [${err.message}]`)
 		return {
 			success: true,
 			error: false,

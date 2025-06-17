@@ -69,9 +69,19 @@ export const teacherSchema = z.object({
 	teacherId: z.string().min(1, { message: 'Mã giảng viên không được bỏ trống' }),
 })
 
+export const courseSchema = z.object({
+	courseId: z.string().min(1, { message: 'Mã khóa học không được bỏ trống' }),
+	name: z.string().min(1, { message: 'Tên khóa học không được bỏ trống' }),
+	credits: z.coerce.number().min(2, { message: 'Số tín chỉ phải >= 2' }),
+	description: z.string().min(1, { message: 'Mô tả khóa học không được bỏ trống' }),
+	facultyId: z.string().min(1, { message: 'Khoa phụ trách không được để trống' }),
+	preCourseId: z.string(),
+})
+
 export type StudentSchema = z.infer<typeof studentSchema>
 export type FacultySchema = z.infer<typeof facultySchema>
 export type ProgramSchema = z.infer<typeof programSchema>
 export type StudentStatusSchema = z.infer<typeof studentStatusSchema>
 export type AddressSchema = z.infer<typeof addressSchema>
 export type TeacherSchema = z.infer<typeof teacherSchema>
+export type CourseSchema = z.infer<typeof courseSchema>
