@@ -11,10 +11,15 @@ export default function Navbar() {
 						<div className="text-2xl font-bold">Edu Staff</div>
 					</Link>
 				</div>
-				<div className="text-xl">
+				<div className="flex gap-2 text-xl">
 					<Link href={'/list/students'}>
 						<div className="rounded-sm border px-2 py-1 select-none hover:cursor-pointer hover:bg-gray-200">
 							Sinh viên
+						</div>
+					</Link>
+					<Link href={'/list/teachers'}>
+						<div className="rounded-sm border px-2 py-1 select-none hover:cursor-pointer hover:bg-gray-200">
+							Giảng viên
 						</div>
 					</Link>
 				</div>
