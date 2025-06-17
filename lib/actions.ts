@@ -13,6 +13,8 @@ import {
 	StudentSchema,
 	StudentStatusSchema,
 	studentStatusSchema,
+	teacherSchema,
+	TeacherSchema,
 } from './formValidationSchemas'
 
 import prisma from './prisma'
@@ -1875,4 +1877,163 @@ export const importFile = async (currentState: CurrentState, data: FormData) => 
 	}
 
 	return result
+}
+
+// ---------------------------------------------
+//              TEACHER
+// ---------------------------------------------
+export const createTeacher = async (currenState: CurrentState, formData: FormData) => {
+	logger.debug(
+		`[server-actions]: (Create-Teacher): Received form data. (DEBUG-END). [${JSON.stringify(Object.fromEntries(formData))}]`,
+	)
+	const teacherFormData: TeacherSchema | any = Object.fromEntries(formData)
+	const validatedTeacherFormData = teacherSchema.safeParse(teacherFormData)
+	try {
+		if (!validatedTeacherFormData.success) {
+			const formFieldErrors = validatedTeacherFormData.error.flatten().fieldErrors
+			logger.error(
+				`[server-actions]: (Create-Teacher): Validation failed. (ERROR-END). [${JSON.stringify(formFieldErrors)}]`,
+			)
+			return {
+				success: false,
+				error: true,
+				errors: {
+					teacherId: formFieldErrors?.teacherId?.[0],
+					name: formFieldErrors?.name?.[0],
+				},
+				data: teacherFormData,
+			}
+		}
+
+		const refinedData = {
+			teacherId: validatedTeacherFormData.data.teacherId,
+			name: validatedTeacherFormData.data.name,
+		}
+
+		await prisma.teacher.create({
+			data: refinedData,
+		})
+
+		logger.info(
+			`[server-actions]: (Create-Teacher): Teacher created successfully. (INFO-END). [${teacherFormData.name}]`,
+		)
+		return {
+			success: true,
+			error: false,
+			errors: null,
+			data: null,
+		}
+	} catch (err: any) {
+		if (err.code == 'P2002') {
+			const field = err.meta?.target?.[0] || 'unknown'
+			logger.error(`[server-actions]: (Create-Teacher): Duplicate entry. (ERROR-END). [${field}: ${err.message}]`)
+			return {
+				success: false,
+				error: true,
+				errors: {
+					[field]: 'Đã tồn tại',
+				},
+				data: teacherFormData,
+			}
+		}
+		logger.error(`[server-actions]: (Create-Teacher): Error. (ERROR-END). [${err.message}]`)
+		return {
+			success: false,
+			error: true,
+			errors: null,
+			data: teacherFormData,
+		}
+	}
+}
+
+export const updateTeacher = async (currenState: CurrentState, formData: FormData) => {
+	logger.debug(
+		`[server-actions]: (Update-Teacher): Received form data. (DEBUG-END). [${JSON.stringify(Object.fromEntries(formData))}]`,
+	)
+	const teacherFormData: TeacherSchema | any = Object.fromEntries(formData)
+	const validatedTeacherFormData = teacherSchema.safeParse(teacherFormData)
+	try {
+		if (!validatedTeacherFormData.success) {
+			const formFieldErrors = validatedTeacherFormData.error.flatten().fieldErrors
+			logger.error(
+				`[server-actions]: (Update-Teacher): Validation failed. (ERROR-END). [${JSON.stringify(formFieldErrors)}]`,
+			)
+			return {
+				success: false,
+				error: true,
+				errors: {
+					teacherId: formFieldErrors?.teacherId?.[0],
+					name: formFieldErrors?.name?.[0],
+				},
+				data: teacherFormData,
+			}
+		}
+
+		const refinedData = {
+			teacherId: validatedTeacherFormData.data.teacherId,
+			name: validatedTeacherFormData.data.name,
+		}
+
+		await prisma.teacher.update({
+			where: {
+				id: parseInt(teacherFormData.id),
+			},
+			data: refinedData,
+		})
+
+		logger.info(
+			`[server-actions]: (Update-Teacher): Teacher updated successfully. (INFO-END). [${teacherFormData.name}]`,
+		)
+		return {
+			success: true,
+			error: false,
+			errors: null,
+			data: null,
+		}
+	} catch (err: any) {
+		if (err.code == 'P2002') {
+			const field = err.meta?.target?.[0] || 'unknown'
+			logger.error(`[server-actions]: (Update-Teacher): Duplicate entry. (ERROR-END). [${field}: ${err.message}]`)
+			return {
+				success: false,
+				error: true,
+				errors: {
+					[field]: 'Đã tồn tại',
+				},
+				data: teacherFormData,
+			}
+		}
+		logger.error(`[server-actions]: (Update-Teacher): Error. (ERROR-END). [${err.message}]`)
+		return {
+			success: false,
+			error: true,
+			errors: null,
+			data: teacherFormData,
+		}
+	}
+}
+
+export const deleteTeacher = async (currentState: CurrentState, data: FormData) => {
+	logger.debug(`[server-actions]: (Delete-Teacher): Received form data. (DEBUG-END). [${data.get('id')}]`)
+	try {
+		const id = data.get('id') as string
+
+		await prisma.teacher.delete({
+			where: {
+				id: parseInt(id),
+			},
+		})
+
+		logger.info(`[server-actions]: (Delete-Teacher): Teacher deleted successfully. (INFO-END). [${id}]`)
+		return {
+			success: true,
+			error: false,
+		}
+	} catch (err: any) {
+		logger.error(`[server-actions]: (Delete-Teacher): Error. (ERROR-END). [${err.message}]`)
+		return {
+			success: true,
+			error: false,
+		}
+	}
 }

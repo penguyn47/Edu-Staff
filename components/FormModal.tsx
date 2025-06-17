@@ -1,7 +1,7 @@
 'use client'
 
 import { Dispatch, ReactNode, SetStateAction, useActionState, useEffect, useState } from 'react'
-import { deleteStudent, deleteFaculty, deleteProgram, deleteStudentStatus } from '@/lib/actions'
+import { deleteStudent, deleteFaculty, deleteProgram, deleteStudentStatus, deleteTeacher } from '@/lib/actions'
 import { toast } from 'react-toastify'
 import { useRouter } from 'next/navigation'
 import StudentForm from './forms/StudentForm'
@@ -9,6 +9,7 @@ import FacultyForm from './forms/FacultyForm'
 import ProgramForm from './forms/ProgramForm'
 import StudentStatusForm from './forms/StudentStatusForm'
 import ExportForm from './forms/ExportForm'
+import TeacherForm from './forms/TeacherForm'
 
 const deleteActionMap = {
 	student: deleteStudent,
@@ -16,6 +17,7 @@ const deleteActionMap = {
 	program: deleteProgram,
 	studentstatus: deleteStudentStatus,
 	export: deleteProgram,
+	teacher: deleteTeacher,
 }
 
 const forms: {
@@ -41,6 +43,9 @@ const forms: {
 	export: (setOpen, type, data, relatedData) => (
 		<ExportForm setOpen={setOpen} type={type} data={data} relatedData={relatedData} />
 	),
+	teacher: (setOpen, type, data, relatedData) => (
+		<TeacherForm setOpen={setOpen} type={type} data={data} relatedData={relatedData} />
+	),
 }
 
 export default function FormModal({
@@ -52,7 +57,7 @@ export default function FormModal({
 	relatedData,
 }: {
 	type: 'create' | 'update' | 'delete' | 'import' | 'export'
-	tableName: 'student' | 'faculty' | 'program' | 'studentstatus' | 'export'
+	tableName: 'student' | 'faculty' | 'program' | 'studentstatus' | 'export' | 'teacher'
 	data?: any
 	id?: number
 	children: ReactNode

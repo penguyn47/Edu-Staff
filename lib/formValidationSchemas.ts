@@ -64,8 +64,14 @@ export const studentStatusSchema = z.object({
 	name: z.string().min(1, { message: 'Tên trạng thái sinh viên không được bỏ trống' }),
 })
 
+export const teacherSchema = z.object({
+	name: z.string().min(1, { message: 'Tên giảng viên không được bỏ trống' }),
+	teacherId: z.string().min(1, { message: 'Mã giảng viên không được bỏ trống' }),
+})
+
 export type StudentSchema = z.infer<typeof studentSchema>
 export type FacultySchema = z.infer<typeof facultySchema>
 export type ProgramSchema = z.infer<typeof programSchema>
 export type StudentStatusSchema = z.infer<typeof studentStatusSchema>
 export type AddressSchema = z.infer<typeof addressSchema>
+export type TeacherSchema = z.infer<typeof teacherSchema>

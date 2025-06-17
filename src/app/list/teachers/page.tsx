@@ -17,16 +17,21 @@ const columns = [
 		accessor: 'name',
 		className: 'px-2 py-1',
 	},
+	{
+		header: '',
+		accessor: 'actions',
+		className: 'px-2 py-1',
+	},
 ]
 
 const renderRow = (item: Teacher) => (
 	<tr key={item.id}>
 		<td className="px-2 py-1">{item.teacherId}</td>
 		<td className="px-2 py-1">{item.name}</td>
-		{/* <td className="px-2 py-1">
+		<td className="px-2 py-1">
 			<div className="flex justify-end gap-2">
 				<FormModal
-					tableName="faculty"
+					tableName="teacher"
 					type="delete"
 					id={item.id}
 					children={
@@ -37,7 +42,7 @@ const renderRow = (item: Teacher) => (
 				/>
 
 				<FormModal
-					tableName="faculty"
+					tableName="teacher"
 					type="update"
 					data={item}
 					children={
@@ -47,7 +52,7 @@ const renderRow = (item: Teacher) => (
 					}
 				/>
 			</div>
-		</td> */}
+		</td>
 	</tr>
 )
 
@@ -75,9 +80,9 @@ export default async function TeacherListPage({
 				<div className="flex flex-col items-center justify-around">
 					<TableSearch />
 
-					{/* <div>
+					<div>
 						<FormModal
-							tableName="faculty"
+							tableName="teacher"
 							type="create"
 							children={
 								<div className="mt-2 rounded-sm border px-2 py-1 text-sm select-none hover:cursor-pointer hover:bg-gray-200">
@@ -85,7 +90,7 @@ export default async function TeacherListPage({
 								</div>
 							}
 						/>
-					</div> */}
+					</div>
 				</div>
 				{/* Tools bar Section - End */}
 
