@@ -22,6 +22,11 @@ export default function Navbar() {
 							Giảng viên
 						</div>
 					</Link>
+					<Link href={'/list/courses'}>
+						<div className="rounded-sm border px-2 py-1 select-none hover:cursor-pointer hover:bg-gray-200">
+							Khóa học
+						</div>
+					</Link>
 				</div>
 			</div>
 			<div className="mx-16 mb-2 flex justify-end gap-2 pb-2">
