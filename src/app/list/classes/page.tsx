@@ -52,10 +52,19 @@ const columns = [
 		className: 'px-2 py-1',
 		accessor: 'schedule',
 	},
+	{
+		header: '',
+		className: 'px-2 py-1',
+		accessor: 'actions',
+	},
 ]
 
 const renderRow = (
-	item: Class & { _count: { Enrollment: number }; course: { name: string }; teacher: { name: string } },
+	item: Class & {
+		_count: { Enrollment: number }
+		course: { courseId: string; name: string }
+		teacher: { teacherId: string; name: string }
+	},
 ) => (
 	<tr key={item.id}>
 		<td className="px-2 py-1">{item.classId}</td>
@@ -68,25 +77,10 @@ const renderRow = (
 		<td className="px-2 py-1">{item.room}</td>
 		<td className="px-2 py-1">{item.schedule}</td>
 
-		{/* <td className="px-2 py-1">
+		<td className="px-2 py-1">
 			<div className="flex justify-end gap-2">
-				{item._count.students == 0 ? (
-					<FormModal
-						tableName="faculty"
-						type="delete"
-						id={item.id}
-						children={
-							<div className="rounded-sm bg-gray-200 px-1 py-1 text-center text-sm hover:cursor-pointer hover:bg-gray-300">
-								Xóa
-							</div>
-						}
-					/>
-				) : (
-					<></>
-				)}
-
 				<FormModal
-					tableName="faculty"
+					tableName="class"
 					type="update"
 					data={item}
 					children={
@@ -96,7 +90,7 @@ const renderRow = (
 					}
 				/>
 			</div>
-		</td> */}
+		</td>
 	</tr>
 )
 
@@ -130,7 +124,7 @@ export default async function ClassListPage({ searchParams }: { searchParams: { 
 					<TableSearch />
 					<div>
 						<FormModal
-							tableName="faculty"
+							tableName="class"
 							type="create"
 							children={
 								<div className="mt-2 rounded-sm border px-2 py-1 text-sm select-none hover:cursor-pointer hover:bg-gray-200">

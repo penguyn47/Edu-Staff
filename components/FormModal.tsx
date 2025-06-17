@@ -8,6 +8,7 @@ import {
 	deleteStudentStatus,
 	deleteTeacher,
 	deleteCourse,
+	deleteDummy,
 } from '@/lib/actions'
 import { toast } from 'react-toastify'
 import { useRouter } from 'next/navigation'
@@ -18,15 +19,17 @@ import StudentStatusForm from './forms/StudentStatusForm'
 import ExportForm from './forms/ExportForm'
 import TeacherForm from './forms/TeacherForm'
 import CourseForm from './forms/CourseForm'
+import ClassForm from './forms/ClassForm'
 
 const deleteActionMap = {
 	student: deleteStudent,
 	faculty: deleteFaculty,
 	program: deleteProgram,
 	studentstatus: deleteStudentStatus,
-	export: deleteProgram,
+	export: deleteDummy,
 	teacher: deleteTeacher,
 	course: deleteCourse,
+	class: deleteDummy,
 }
 
 const forms: {
@@ -58,6 +61,9 @@ const forms: {
 	course: (setOpen, type, data, relatedData) => (
 		<CourseForm setOpen={setOpen} type={type} data={data} relatedData={relatedData} />
 	),
+	class: (setOpen, type, data, relatedData) => (
+		<ClassForm setOpen={setOpen} type={type} data={data} relatedData={relatedData} />
+	),
 }
 
 export default function FormModal({
@@ -69,7 +75,7 @@ export default function FormModal({
 	relatedData,
 }: {
 	type: 'create' | 'update' | 'delete' | 'import' | 'export'
-	tableName: 'student' | 'faculty' | 'program' | 'studentstatus' | 'export' | 'teacher' | 'course'
+	tableName: 'student' | 'faculty' | 'program' | 'studentstatus' | 'export' | 'teacher' | 'course' | 'class'
 	data?: any
 	id?: number
 	children: ReactNode

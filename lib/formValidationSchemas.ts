@@ -78,6 +78,21 @@ export const courseSchema = z.object({
 	preCourseId: z.string(),
 })
 
+export const classSchema = z.object({
+	classId: z.string().min(1, { message: 'Mã lớp học không được bỏ trống' }),
+	year: z.coerce.number().min(1, { message: 'Năm học không được bỏ trống' }),
+	courseId: z.string().min(1, { message: 'Môn học không được để trống' }),
+	teacherId: z.string().min(1, { message: 'Giảng viên không được để trống' }),
+	semester: z.coerce.number().min(1, { message: 'Học kì không được bỏ trống' }),
+	maxStudent: z.coerce.number().min(1, { message: 'Số lượng tối đa không được bỏ trống' }),
+	room: z.string().min(1, { message: 'Phòng không được bỏ trống' }),
+	schedule: z
+		.string()
+		.min(1, { message: 'Lịch học không được bỏ trống' })
+		.trim()
+		.regex(/^(Thứ [2-8]),\s*(\d{1,2}:\d{2})-(\d{1,2}:\d{2})$/, { message: 'Lịch học không hợp lệ' }),
+})
+
 export type StudentSchema = z.infer<typeof studentSchema>
 export type FacultySchema = z.infer<typeof facultySchema>
 export type ProgramSchema = z.infer<typeof programSchema>
@@ -85,3 +100,4 @@ export type StudentStatusSchema = z.infer<typeof studentStatusSchema>
 export type AddressSchema = z.infer<typeof addressSchema>
 export type TeacherSchema = z.infer<typeof teacherSchema>
 export type CourseSchema = z.infer<typeof courseSchema>
+export type ClassSchema = z.infer<typeof classSchema>

@@ -4,6 +4,8 @@ import * as XLSX from 'xlsx'
 
 import {
 	addressSchema,
+	ClassSchema,
+	classSchema,
 	courseSchema,
 	CourseSchema,
 	facultySchema,
@@ -2304,5 +2306,206 @@ export const deleteCourse = async (currentState: CurrentState, data: FormData) =
 			success: true,
 			error: false,
 		}
+	}
+}
+
+// ---------------------------------------------
+//              CLASS
+// ---------------------------------------------
+export const createClass = async (currenState: CurrentState, formData: FormData) => {
+	logger.debug(
+		`[server-actions]: (Create-Class): Received form data. (DEBUG-END). [${JSON.stringify(Object.fromEntries(formData))}]`,
+	)
+	const classFormData: ClassSchema | any = Object.fromEntries(formData)
+	const validatedClassFormData = classSchema.safeParse(classFormData)
+	try {
+		if (!validatedClassFormData.success) {
+			const formFieldErrors = validatedClassFormData.error.flatten().fieldErrors
+			logger.error(
+				`[server-actions]: (Create-Class): Validation failed. (ERROR-END). [${JSON.stringify(formFieldErrors)}]`,
+			)
+			return {
+				success: false,
+				error: true,
+				errors: {
+					classId: formFieldErrors?.classId?.[0],
+					year: formFieldErrors?.year?.[0],
+					courseId: formFieldErrors?.courseId?.[0],
+					teacherId: formFieldErrors?.teacherId?.[0],
+					semester: formFieldErrors?.semester?.[0],
+					maxStudent: formFieldErrors?.maxStudent?.[0],
+					room: formFieldErrors?.room?.[0],
+					schedule: formFieldErrors?.schedule?.[0],
+				},
+				data: classFormData,
+			}
+		}
+
+		const course = await prisma.course.findUnique({ where: { courseId: classFormData.courseId } })
+
+		if (!course) {
+			return {
+				success: false,
+				error: true,
+				errors: {
+					courseId: 'Khóa học không tồn tại',
+				},
+				data: classFormData,
+			}
+		}
+
+		const teacher = await prisma.teacher.findUnique({ where: { teacherId: classFormData.teacherId } })
+		if (!teacher) {
+			return {
+				success: false,
+				error: true,
+				errors: {
+					teacherId: 'Giảng viên không tồn tại',
+				},
+				data: classFormData,
+			}
+		}
+
+		const refinedData = {
+			...validatedClassFormData.data,
+			courseId: course?.id,
+			teacherId: teacher?.id,
+		}
+
+		await prisma.class.create({
+			data: refinedData,
+		})
+
+		logger.info(`[server-actions]: (Create-Class): Class created successfully. (INFO-END). [${classFormData.name}]`)
+		return {
+			success: true,
+			error: false,
+			errors: null,
+			data: null,
+		}
+	} catch (err: any) {
+		if (err.code == 'P2002') {
+			const field = err.meta?.target?.[0] || 'unknown'
+			logger.error(`[server-actions]: (Create-Class): Duplicate entry. (ERROR-END). [${field}: ${err.message}]`)
+			return {
+				success: false,
+				error: true,
+				errors: {
+					[field]: 'Đã tồn tại',
+				},
+				data: classFormData,
+			}
+		}
+		logger.error(`[server-actions]: (Create-Class): Error. (ERROR-END). [${err.message}]`)
+		return {
+			success: false,
+			error: true,
+			errors: null,
+			data: classFormData,
+		}
+	}
+}
+
+export const updateClass = async (currenState: CurrentState, formData: FormData) => {
+	logger.debug(
+		`[server-actions]: (Update-Class): Received form data. (DEBUG-END). [${JSON.stringify(Object.fromEntries(formData))}]`,
+	)
+	const classFormData: ClassSchema | any = Object.fromEntries(formData)
+	const validatedClassFormData = classSchema.safeParse(classFormData)
+	try {
+		if (!validatedClassFormData.success) {
+			const formFieldErrors = validatedClassFormData.error.flatten().fieldErrors
+			logger.error(
+				`[server-actions]: (Update-Class): Validation failed. (ERROR-END). [${JSON.stringify(formFieldErrors)}]`,
+			)
+			return {
+				success: false,
+				error: true,
+				errors: {
+					classId: formFieldErrors?.classId?.[0],
+					year: formFieldErrors?.year?.[0],
+					courseId: formFieldErrors?.courseId?.[0],
+					teacherId: formFieldErrors?.teacherId?.[0],
+					semester: formFieldErrors?.semester?.[0],
+					maxStudent: formFieldErrors?.maxStudent?.[0],
+					room: formFieldErrors?.room?.[0],
+					schedule: formFieldErrors?.schedule?.[0],
+				},
+				data: classFormData,
+			}
+		}
+
+		const course = await prisma.course.findUnique({ where: { courseId: classFormData.courseId } })
+
+		if (!course) {
+			return {
+				success: false,
+				error: true,
+				errors: {
+					courseId: 'Khóa học không tồn tại',
+				},
+				data: classFormData,
+			}
+		}
+
+		const teacher = await prisma.teacher.findUnique({ where: { teacherId: classFormData.teacherId } })
+		if (!teacher) {
+			return {
+				success: false,
+				error: true,
+				errors: {
+					teacherId: 'Giảng viên không tồn tại',
+				},
+				data: classFormData,
+			}
+		}
+
+		const refinedData = {
+			...validatedClassFormData.data,
+			courseId: course?.id,
+			teacherId: teacher?.id,
+		}
+
+		await prisma.class.update({
+			where: {
+				id: parseInt(classFormData.id),
+			},
+			data: refinedData,
+		})
+
+		logger.info(`[server-actions]: (Update-Class): Class updated successfully. (INFO-END). [${classFormData.name}]`)
+		return {
+			success: true,
+			error: false,
+			errors: null,
+			data: null,
+		}
+	} catch (err: any) {
+		if (err.code == 'P2002') {
+			const field = err.meta?.target?.[0] || 'unknown'
+			logger.error(`[server-actions]: (Update-Class): Duplicate entry. (ERROR-END). [${field}: ${err.message}]`)
+			return {
+				success: false,
+				error: true,
+				errors: {
+					[field]: 'Đã tồn tại',
+				},
+				data: classFormData,
+			}
+		}
+		logger.error(`[server-actions]: (Update-Class): Error. (ERROR-END). [${err.message}]`)
+		return {
+			success: false,
+			error: true,
+			errors: null,
+			data: classFormData,
+		}
+	}
+}
+
+export const deleteDummy = async (currenState: CurrentState, formData: FormData) => {
+	return {
+		success: false,
+		error: false,
 	}
 }
