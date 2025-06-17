@@ -249,7 +249,7 @@ export default function StudentForm({
 								>
 									<option value="">Chọn trạng thái</option>
 									{relatedData?.studentStatuses.map((item: { id: number; name: string }, index: number) => {
-										const currentIndex = STUDENT_STATUS_UPDATE_RULE.indexOf(data?.status?.name || 'MAX')
+										const currentIndex = STUDENT_STATUS_UPDATE_RULE.indexOf(data?.status?.name || '')
 										return (
 											<option
 												key={item.id}
