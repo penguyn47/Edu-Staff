@@ -27,6 +27,11 @@ export default function Navbar() {
 							Khóa học
 						</div>
 					</Link>
+					<Link href={'/list/classes'}>
+						<div className="rounded-sm border px-2 py-1 select-none hover:cursor-pointer hover:bg-gray-200">
+							Lớp học
+						</div>
+					</Link>
 				</div>
 			</div>
 			<div className="mx-16 mb-2 flex justify-end gap-2 pb-2">
