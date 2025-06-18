@@ -55,4 +55,7 @@ Before you begin, ensure you have the following installed:
 
 #### Images
 
-![Alt text](imgs/img-01.png)
+![Alt text](imgs/img-02.png)
+![Alt text](imgs/img-03.png)
+![Alt text](imgs/img-04.png)
+![Alt text](imgs/img-05.png)
