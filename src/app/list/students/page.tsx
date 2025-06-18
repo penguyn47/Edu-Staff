@@ -1,6 +1,6 @@
 import { Table } from '@/components/ui/Table'
 import { Pagination } from '@/components/ui/Pagination'
-
+import { IoEyeSharp } from 'react-icons/io5'
 import { ITEM_PER_PAGE } from '@/lib/settings'
 
 import { Faculty, Prisma, Program, Student, StudentSex, StudentStatus } from '@prisma/client'
@@ -9,10 +9,16 @@ import FormModal from '@/components/FormModal'
 import TableSearch from '@/components/ui/TableSearch'
 import { logger } from '@/services/logger'
 import FilterBar from '@/components/ui/FilterBar'
+import Link from 'next/link'
 
 type StudentList = Student & { faculty: Faculty; program: Program; status: StudentStatus }
 
 const columns = [
+	{
+		header: '',
+		accessor: 'view',
+		className: 'px-2 py-1',
+	},
 	{
 		header: 'MSSV',
 		accessor: 'studentId',
@@ -75,6 +81,11 @@ export default async function StudentListPage({
 
 	const renderRow = (item: StudentList) => (
 		<tr key={item.id}>
+			<td className="px-2 py-1 text-gray-500 hover:text-gray-800">
+				<Link href={`/student/${item.id}`}>
+					<IoEyeSharp />
+				</Link>
+			</td>
 			<td className="px-2 py-1">{item.studentId}</td>
 			<td className="px-2 py-1">{item.name}</td>
 			<td className="px-2 py-1">{item.dob.toLocaleDateString()}</td>
