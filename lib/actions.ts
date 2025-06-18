@@ -2509,3 +2509,145 @@ export const deleteDummy = async (currenState: CurrentState, formData: FormData)
 		error: false,
 	}
 }
+
+// ---------------------------------------------
+//              ENROLLMENT
+// ---------------------------------------------
+export const createEnrollment = async (currentState: CurrentState, formData: FormData) => {
+	const enrollmentFormData: any = Object.fromEntries(formData)
+
+	const result: {
+		success: boolean
+		error: boolean
+		errors: any
+		data: any
+		successes: any
+	} = {
+		success: false,
+		error: false,
+		errors: {
+			summary: [],
+		},
+		data: enrollmentFormData,
+		successes: {
+			summary: [],
+		},
+	}
+
+	const classIds = Object.keys(enrollmentFormData)
+		.filter((key) => key.startsWith('class['))
+		.map((key) => {
+			const match = key.match(/class\[(.+)\]/)
+			return match ? match[1] : null
+		})
+		.filter((id) => id !== null)
+
+	if (!enrollmentFormData?.studentId) {
+		result.error = true
+		result.errors = {
+			...result.errors,
+			studentId: 'MSSV không được để trống',
+		}
+		return result
+	}
+
+	try {
+		const student = await prisma.student.findUnique({
+			where: {
+				studentId: enrollmentFormData.studentId,
+			},
+		})
+
+		if (!student) {
+			result.error = true
+			result.errors = {
+				...result.errors,
+				studentId: 'Sinh viên không tồn tại',
+			}
+			return result
+		}
+
+		for (let classId of classIds) {
+			const _class = await prisma.class.findUnique({
+				where: {
+					classId: classId,
+				},
+				include: {
+					course: {
+						include: {
+							preCourse: true,
+						},
+					},
+				},
+			})
+
+			if (!_class) {
+				result.error = true
+				result.errors = {
+					...result.errors,
+					summary: [...result.errors.summary, ` Class ${classId} không tồn tại`],
+				}
+				continue
+			}
+
+			if (_class?.course.preCourseId) {
+				const _result = await prisma.result.findMany({
+					where: {
+						studentId: enrollmentFormData.studentId,
+						courseId: _class?.course.preCourseId,
+					},
+				})
+
+				if (!_result.length) {
+					result.error = true
+					result.errors = {
+						...result.errors,
+						summary: [...result.errors.summary, ` Class ${classId} có môn tiên quyết chưa hoàn thành`],
+					}
+					continue
+				}
+			}
+
+			const enrollments = await prisma.enrollment.findMany({
+				where: {
+					studentId: student.id,
+					classId: _class.id,
+				},
+			})
+
+			if (enrollments.length) {
+				result.error = true
+				result.errors = {
+					...result.errors,
+					summary: [...result.errors.summary, ` Class ${classId} đã đăng ký trước đó`],
+				}
+				continue
+			}
+
+			await prisma.enrollment.create({
+				data: {
+					studentId: student.id,
+					classId: _class.id,
+					status: 'ACTIVE',
+				},
+			})
+
+			result.success = true
+			result.successes = {
+				...result.successes,
+				summary: [...result.successes.summary, ` Class ${classId} đăng ký thành công`],
+			}
+			continue
+		}
+	} catch (error: any) {
+		console.log(error)
+		result.error = true
+		result.errors = {
+			...result.errors,
+			summary: [...result.errors.summary, ` Lỗi hệ thống: ${error.message || 'Không thể xử lý đăng ký'} `],
+		}
+		return result
+	}
+
+	return result
+}

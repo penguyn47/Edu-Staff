@@ -50,6 +50,11 @@ export default function Navbar() {
 						Trạng thái
 					</div>
 				</Link>
+				<Link href={'/regEnrollment'}>
+					<div className="mt-2 rounded-sm border px-2 py-1 text-sm select-none hover:cursor-pointer hover:bg-gray-200">
+						Đăng ký lớp cho sinh viên
+					</div>
+				</Link>
 			</div>
 		</div>
 	)
