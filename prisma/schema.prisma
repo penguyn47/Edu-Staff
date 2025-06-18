@@ -130,6 +130,7 @@ model Course {
 
   Course Course[] @relation("preCourse")
   Class  Class[]
+  Result Result[]
 }
 
 model Class {
@@ -171,4 +172,6 @@ model Result {
 
   credits Int
   grade   Float
+
+  course Course @relation(fields: [courseId], references: [id])
 }
