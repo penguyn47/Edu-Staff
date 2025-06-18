@@ -32,6 +32,14 @@ Before you begin, ensure you have the following installed:
    ```bash
    DATABASE_URL="postgresql://[user]:[password]@localhost:5432/[db-name]"
    ```
+5. Run migrations
+   ```bash
+   npx prisma migrate deploy
+   ```
+6. Run seed
+   ```bash
+   npx prisma db seed
+   ```
 
 #### Usage
 
