@@ -2578,8 +2578,22 @@ export const createEnrollment = async (currentState: CurrentState, formData: For
 							preCourse: true,
 						},
 					},
+					_count: {
+						select: {
+							Enrollment: true,
+						},
+					},
 				},
 			})
+
+			if (_class && _class?._count.Enrollment >= _class?.maxStudent) {
+				result.error = true
+				result.errors = {
+					...result.errors,
+					summary: [...result.errors.summary, ` Class ${classId} đã đủ số lượng`],
+				}
+				continue
+			}
 
 			if (!_class) {
 				result.error = true
