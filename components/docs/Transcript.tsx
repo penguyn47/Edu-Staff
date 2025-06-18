@@ -1,9 +1,16 @@
 'use client'
 
 import { useReactToPrint } from 'react-to-print'
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
+import { CiSaveDown2 } from 'react-icons/ci'
 
 export default function Transcript({ studentData, resultData }: { studentData: any; resultData: any }) {
+	const [isOpen, setOpen] = useState(false)
+
+	const handleClick = () => {
+		setOpen((prev) => true)
+	}
+
 	const contentRef = useRef<HTMLDivElement>(null)
 	const reactToPrintFn = useReactToPrint({ contentRef })
 
@@ -21,105 +28,121 @@ export default function Transcript({ studentData, resultData }: { studentData: a
 	}
 
 	return (
-		<div className="flex flex-col items-center">
+		<div>
 			<div
-				className="w-fit rounded-sm border px-2 py-1 select-none hover:cursor-pointer hover:bg-gray-200"
-				onClick={reactToPrintFn}
+				onClick={handleClick}
+				className="w-fit rounded-sm border bg-white px-2 py-1 select-none hover:cursor-pointer hover:bg-gray-200"
 			>
-				In kết quả học tập
+				Xem và in bảng điểm
 			</div>
-			<div ref={contentRef}>
-				<div className="min-h-screen bg-gray-100 px-4 py-10 sm:px-6 lg:px-8">
-					<div className="mx-auto max-w-4xl overflow-hidden rounded-lg bg-white shadow-xl">
-						{/* Header */}
-						<div className="bg-gray-800 bg-gradient-to-r py-6 text-center text-white">
-							<h1 className="text-3xl font-bold">Bảng Điểm Sinh Viên</h1>
-							<p className="mt-1 text-sm">Trường Đại học XYZ</p>
+			{isOpen && (
+				<div className="absolute top-0 left-0 flex h-[1200px] w-screen items-center justify-center overflow-scroll bg-gray-800/30 pt-[300px]">
+					<div className="relative flex items-center justify-center gap-4 rounded bg-gray-50 p-10">
+						<div className="absolute top-2 right-4 hover:cursor-pointer" onClick={() => setOpen(false)}>
+							✖️
 						</div>
+						<div ref={contentRef}>
+							<div className="border bg-gray-100 px-4 py-10 sm:px-6 lg:px-8">
+								<div className="mx-auto w-2xl overflow-hidden rounded-lg bg-white shadow-xl">
+									{/* Header */}
+									<div className="bg-gray-800 bg-gradient-to-r py-6 text-center text-white">
+										<h1 className="text-3xl font-bold">Bảng Điểm Sinh Viên</h1>
+										<p className="mt-1 text-sm">Trường Đại học XYZ</p>
+									</div>
 
-						{/* Student Information */}
-						<div className="border-b border-gray-200 p-6">
-							<h2 className="mb-4 text-2xl font-semibold text-gray-800">Thông Tin Sinh Viên</h2>
-							<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-								<div>
-									<p className="text-gray-600">
-										<span className="font-medium">Mã SV:</span> {studentData.studentId}
-									</p>
-									<p className="text-gray-600">
-										<span className="font-medium">Họ Tên:</span> {studentData.name}
-									</p>
-									<p className="text-gray-600">
-										<span className="font-medium">Ngày Sinh:</span> {formatDate(studentData.dob)}
-									</p>
-									<p className="text-gray-600">
-										<span className="font-medium">Giới Tính:</span> {studentData.sex === 'MALE' ? 'Nam' : 'Nữ'}
-									</p>
-									<p className="text-gray-600">
-										<span className="font-medium">Quốc Tịch:</span> {studentData.nationality}
-									</p>
-								</div>
-								<div>
-									<p className="text-gray-600">
-										<span className="font-medium">Khoa:</span> {studentData.faculty.name}
-									</p>
-									<p className="text-gray-600">
-										<span className="font-medium">Chương Trình:</span> {studentData.program.name}
-									</p>
-									<p className="text-gray-600">
-										<span className="font-medium">Trạng Thái:</span> {studentData.status.name}
-									</p>
-									<p className="text-gray-600">
-										<span className="font-medium">Email:</span> {studentData.email || 'N/A'}
-									</p>
-									<p className="text-gray-600">
-										<span className="font-medium">SĐT:</span> {studentData.phone || 'N/A'}
-									</p>
+									{/* Student Information */}
+									<div className="border-b border-gray-200 p-6">
+										<h2 className="mb-4 text-2xl font-semibold text-gray-800">Thông Tin Sinh Viên</h2>
+										<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+											<div>
+												<p className="text-gray-600">
+													<span className="font-medium">Mã SV:</span> {studentData.studentId}
+												</p>
+												<p className="text-gray-600">
+													<span className="font-medium">Họ Tên:</span> {studentData.name}
+												</p>
+												<p className="text-gray-600">
+													<span className="font-medium">Ngày Sinh:</span> {formatDate(studentData.dob)}
+												</p>
+												<p className="text-gray-600">
+													<span className="font-medium">Giới Tính:</span> {studentData.sex === 'MALE' ? 'Nam' : 'Nữ'}
+												</p>
+												<p className="text-gray-600">
+													<span className="font-medium">Quốc Tịch:</span> {studentData.nationality}
+												</p>
+											</div>
+											<div>
+												<p className="text-gray-600">
+													<span className="font-medium">Khoa:</span> {studentData.faculty.name}
+												</p>
+												<p className="text-gray-600">
+													<span className="font-medium">Chương Trình:</span> {studentData.program.name}
+												</p>
+												<p className="text-gray-600">
+													<span className="font-medium">Trạng Thái:</span> {studentData.status.name}
+												</p>
+												<p className="text-gray-600">
+													<span className="font-medium">Email:</span> {studentData.email || 'N/A'}
+												</p>
+												<p className="text-gray-600">
+													<span className="font-medium">SĐT:</span> {studentData.phone || 'N/A'}
+												</p>
+											</div>
+										</div>
+									</div>
+
+									{/* Grades Table */}
+									<div className="p-6">
+										<h2 className="mb-4 text-2xl font-semibold text-gray-800">Kết Quả Học Tập</h2>
+										{resultData && resultData.length > 0 ? (
+											<div className="overflow-x-auto">
+												<table className="min-w-full rounded-lg border border-gray-200 bg-white">
+													<thead className="bg-gray-50">
+														<tr>
+															<th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Mã HP</th>
+															<th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Tên Học Phần</th>
+															<th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Số Tín Chỉ</th>
+															<th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Điểm</th>
+														</tr>
+													</thead>
+													<tbody>
+														{resultData.map((result: any, index: any) => (
+															<tr
+																key={result.courseId}
+																className={`border-t ${index % 2 === 0 ? 'bg-gray-50' : 'bg-white'} transition hover:bg-blue-50`}
+															>
+																<td className="px-4 py-3 text-sm text-gray-600">{result.course.courseId}</td>
+																<td className="px-4 py-3 text-sm text-gray-600">{result.course.name}</td>
+																<td className="px-4 py-3 text-sm text-gray-600">{result.credits}</td>
+																<td className="px-4 py-3 text-sm text-gray-600">{result.grade.toFixed(2)}</td>
+															</tr>
+														))}
+													</tbody>
+												</table>
+											</div>
+										) : (
+											<p className="text-gray-600">Chưa có kết quả học tập.</p>
+										)}
+									</div>
+
+									{/* GPA */}
+									<div className="border-t border-gray-200 bg-gray-50 p-6">
+										<h3 className="text-xl font-semibold text-gray-800">Điểm Trung Bình Tích Lũy (GPA):</h3>
+										<p className="mt-2 text-3xl font-bold text-gray-600">{gpa}</p>
+									</div>
 								</div>
 							</div>
 						</div>
 
-						{/* Grades Table */}
-						<div className="p-6">
-							<h2 className="mb-4 text-2xl font-semibold text-gray-800">Kết Quả Học Tập</h2>
-							{resultData && resultData.length > 0 ? (
-								<div className="overflow-x-auto">
-									<table className="min-w-full rounded-lg border border-gray-200 bg-white">
-										<thead className="bg-gray-50">
-											<tr>
-												<th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Mã HP</th>
-												<th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Tên Học Phần</th>
-												<th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Số Tín Chỉ</th>
-												<th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Điểm</th>
-											</tr>
-										</thead>
-										<tbody>
-											{resultData.map((result: any, index: any) => (
-												<tr
-													key={result.courseId}
-													className={`border-t ${index % 2 === 0 ? 'bg-gray-50' : 'bg-white'} transition hover:bg-blue-50`}
-												>
-													<td className="px-4 py-3 text-sm text-gray-600">{result.course.courseId}</td>
-													<td className="px-4 py-3 text-sm text-gray-600">{result.course.name}</td>
-													<td className="px-4 py-3 text-sm text-gray-600">{result.credits}</td>
-													<td className="px-4 py-3 text-sm text-gray-600">{result.grade.toFixed(2)}</td>
-												</tr>
-											))}
-										</tbody>
-									</table>
-								</div>
-							) : (
-								<p className="text-gray-600">Chưa có kết quả học tập.</p>
-							)}
-						</div>
-
-						{/* GPA */}
-						<div className="border-t border-gray-200 bg-gray-50 p-6">
-							<h3 className="text-xl font-semibold text-gray-800">Điểm Trung Bình Tích Lũy (GPA):</h3>
-							<p className="mt-2 text-3xl font-bold text-gray-600">{gpa}</p>
+						<div
+							className="w-fit rounded-sm border bg-white px-2 py-1 select-none hover:cursor-pointer hover:bg-gray-200"
+							onClick={reactToPrintFn}
+						>
+							<CiSaveDown2 /> Tải xuống
 						</div>
 					</div>
 				</div>
-			</div>
+			)}
 		</div>
 	)
 }

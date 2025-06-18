@@ -137,6 +137,7 @@ export default async function StudentPage({ params }: { params: Promise<{ id: st
 			<StudentInfoSection data={studentData} />
 
 			<div className="text-xl font-bold">Các lớp đã đăng ký / đang học</div>
+
 			{/* Table Section - Start */}
 			<Table columns={columns} renderRow={renderRow} data={classData} />
 			{/* Table Section - End */}
